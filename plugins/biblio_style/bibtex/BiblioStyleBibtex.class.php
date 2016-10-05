@@ -41,7 +41,9 @@ class BiblioStyleBibtex extends BiblioStyleBase implements BiblioStyleImportInte
 
         $property_name = $map[$key]['property'];
         if (!isset($wrapper->{$property_name})) {
-          biblio_create_field($property_name, 'biblio', $biblio_type);
+          // If field does not exist, we don't want to create it
+          continue;
+          //biblio_create_field($property_name, 'biblio', $biblio_type);
         }
 
         $method = $map[$key]['import_method'];
