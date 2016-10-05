@@ -102,7 +102,7 @@ abstract class BiblioStyleBase implements BiblioStyleInterface {
    *  MD5 string that represents the given biblio.
    */
   public static function generateBiblioMd5(Biblio $biblio) {
-    $clone = clone $biblio;
+    $clone = unserialize(serialize($biblio));
 
     // Remove unique or temporary data.
     unset($clone->bid);
@@ -136,6 +136,7 @@ abstract class BiblioStyleBase implements BiblioStyleInterface {
 
     $md5 = md5(serialize($clone));
 
+
     return $md5;
   }
 
@@ -150,7 +151,6 @@ abstract class BiblioStyleBase implements BiblioStyleInterface {
    */
   public function isDuplicate(Biblio $biblio) {
     $md5 = $this->generateBiblioMd5($biblio);
-
     $query = new EntityFieldQuery();
     $result = $query
       ->entityCondition('entity_type', 'biblio')

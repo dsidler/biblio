@@ -2,25 +2,15 @@
 
 /**
  * @file
- * BibTeX style.
+ * Pubzone style.
  */
 
-class BiblioStyleBibtex extends BiblioStyleBase implements BiblioStyleImportInterface {
+class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInterface {
 
   /**
    * @inheritdoc
    */
   public function importData($data, $options = array()) {
-    $bibtex = new PARSEENTRIES();
-    $bibtex->loadBibtexString($data);
-
-    $bibtex->extractEntries();
-
-    if (!$bibtex->count) {
-      return;
-    }
-
-    $entries = $bibtex->getEntries();
 
     $map = $this->getMapping();
     $map = $map['field'];
@@ -28,33 +18,232 @@ class BiblioStyleBibtex extends BiblioStyleBase implements BiblioStyleImportInte
     // Array of Biblios.
     $biblios = array();
 
-    foreach ($entries as $entry) {
-      $biblio_type = $this->getBiblioType($entry['bibtexEntryType']);
-      $biblio = biblio_create($biblio_type);
+    db_set_active('pubzonedb');
+    
+    $query = db_select('publication', 'p');
+    $query->join('group_publication', 'gp', 'p.publication_id=gp.publication_id');
+    $query->join('venue', 'v', 'p.venue_id=v.venue_id');
+    $query->fields('p', array('title', 'year', 'month', 'publication_id', 'type', 'doi_url', 'abstract'));
+    //$query->fields('v', array('name'));
+    $query->addField('v', 'name', 'booktitle'); //TODO maybe map to booktitle or secondary title
+    $query->condition('gp.group_id', 1);
+    $query->condition('p.is_deleted', 0);
+    $query->condition('p.isActive', 1);
+    $query->orderBy('p.year', 'ASC');
+    $query->orderBy('p.month', 'ASC');
+    $query->orderBy('p.publication_id', 'ASC');
+    $query->range(200,1);
 
+    //TODO keywords
+    //TODO Supervisor
+    
+    $result = $query->execute();
+    db_set_active('default');
+
+    foreach($result as $row) {
+      if ($row->type == 'book_chapter') {
+        continue;
+      }
+      $entry = (array) $row;
+
+      $biblio_type = $this->getTypeMapping($row->type);
+      //print('<p>'.$row->title.'</p>');
+      //$biblio = biblio_create($newtype, array('title' => $row->title));
+                                            //'biblio_year' => $row->year,
+      biblio_month' => $row->month,
+                                            //'bilbio_url' => $row->doi_url,
+      //));
+
+      $biblio = biblio_create($biblio_type);
+      //Get wrapper
       $wrapper = entity_metadata_wrapper('biblio', $biblio);
 
       foreach (array_keys($map) as $key) {
-        if (in_array($key, array('author', 'editor'))) {
+        if (in_array($key, array('author', 'editor'))) { //TODO add supervisor
           continue;
         }
-
+        
+        //Get property_name
         $property_name = $map[$key]['property'];
         if (!isset($wrapper->{$property_name})) {
-          // If field does not exist, we don't want to create it
-          continue;
           //biblio_create_field($property_name, 'biblio', $biblio_type);
+          continue;
         }
 
         $method = $map[$key]['import_method'];
         $this->{$method}($wrapper, $key, $entry);
+
+      } //foreach
+
+      //TODO month, pdf slides, poster
+      //publicatino PDF
+
+      //Add contributors
+      $contributors = $this->getPublicationAuthors($row->publication_id);
+      $this->importContributors($wrapper, $contributors);
+
+      //Add Supervisor for thesis
+      if ($row->type == 'phd_thesis' || $row->type == 'master_thesis') {
+        //TODO
+        //$biblio->addContributors($row->supervisor, 'Supervisor');
       }
 
-      $this->importContributors($wrapper, $entry);
+      //Add sections/categories
+      $sections = $this->getPublicationSections($row->publication_id);
+      $this->importSections($wrapper, $sections);
+
+      //Add keywords
+      $keywords = $this->getPublicationKeywords($row->publication_id);
+      if (!empty($keywords)) {
+        $this->importKeywordsList($wrapper, $keywords);
+      }
+
+      dpm($entry);
+      dpm($wrapper->value());
+      //Add to list
       $biblios['success'][] = $wrapper->value();
     }
 
+    //db_set_active('default');
+
+    //$biblio = biblio_create('book', array('title' => 'bulk import test'));
+    //$biblio->addContributors('Jon no DOe');
+
+    //$biblios['success'][] = $biblio;
+
     return $biblios;
+  }
+
+  /**
+   * Get Publication Contributors
+   */
+  public function getPublicationAuthors($publication_id) {
+    db_set_active('pubzonedb');
+    
+    $query = db_select('author', 'a');
+    $query->join('person', 'p', 'a.user_id=p.user_id');
+    $query->fields('p', array('first_name', 'last_name'));
+    $query->condition('a.publication_id', $publication_id);
+    $query->orderBy('a.priority', 'ASC');
+    
+    $authors = $query->execute();
+    db_set_active('default');
+
+    $contributors = array();
+    foreach($authors as $author) {
+      $contributor_array['firstname'] = trim($author->first_name);
+      $contributor_array['lastname'] = trim($author->last_name);
+      $contributor_array['initials'] = '';//($contributor_array['firstname'][0].$contributor_array['lastname'][0]);
+      $contributor_array['prefix'] = '';
+      $contributor_array['suffix'] = '';
+
+      // Get existing Biblio Contributor object, save it if it doesn't exist.
+      $biblio_contributor = biblio_contributor_create($contributor_array);
+      $biblio_contributor = BiblioContributorUtility::getBiblioContributor($biblio_contributor);
+
+      $contributors[] = $biblio_contributor;
+    }
+
+    return $contributors;
+  }
+
+  public function getPublicationSections($publication_id) {
+    db_set_active('pubzonedb');
+    
+    $query = db_select('section_publication', 'sp');
+    $query->join('section', 's', 'sp.section_id=s.section_id');
+    $query->fields('s', array('section_name'));
+    $query->condition('sp.publication_id', $publication_id);
+    
+    $result = $query->execute();
+    db_set_active('default');
+
+    $sections = array();
+
+    foreach($result as $row) {
+      $sections[] = $row->section_name;
+    }
+
+    return $sections;
+  }
+
+  public function getPublicationKeywords($publication_id) {
+    db_set_active('pubzonedb');
+    
+    $query = db_select('keyword', 'k');
+    $query->fields('k', array('keyword'));
+    $query->condition('k.publication_id', $publication_id);
+    
+    $result = $query->execute();
+    db_set_active('default');
+
+    $keywords = array();
+
+    foreach($result as $row) {
+      $sections[] = $row->section_name;
+    }
+
+    return $keywords;
+  }
+
+  /**
+   * Get Type Mapping
+   */
+  public function getTypeMapping($type) {
+    if ($type == 'phd_thesis') {
+      return 'thesis';
+    } else if ($type == 'tech_report') {
+      return 'report';
+    } else {
+      return $type;
+    }
+  }
+
+  /**
+   * Get Section Mapping
+   */
+  public function getSectionMapping($sections) {
+    $new_sections = array();
+
+    foreach($sections as $section_id) {
+    switch ($section_id) {
+      case 1: //Database Systems
+        $nws = 6;
+        break;
+      case 2: //Operating Systems
+        $nws = 10;
+        break;
+      case 9://Distributed Systems
+        $nws = 7;
+        break;
+      case 10; //Networking
+        $nws = 9;
+        break;
+      case 11; //Software Construbtion
+        $nws = 11;
+        break;
+      case 12: //Cloud Computing
+        $nws = 4;
+        break;
+      case 13: //Workflow Systems
+        $nws = 13;
+        break;
+      case 14: //Stream Processing
+        $nws = 12;
+        break;
+      case 61: //High Performance Coputing
+        $nws = 8;
+        break;
+      case 62: //Crowd Sourcing
+        $nws = 5;
+        break;
+      default:
+        $nws = 0;
+      break;
+    } //switch
+    $new_sections[] = $nws;
+    } //for
+    return $new_sections;
   }
 
   /**
@@ -218,16 +407,18 @@ class BiblioStyleBibtex extends BiblioStyleBase implements BiblioStyleImportInte
    * @param $entry
    *   The data to import from.
    */
-  public function importContributors(EntityMetadataWrapper $wrapper, $entry) {
-    foreach (array('author', 'editor') as $type) {
+  public function importContributors(EntityMetadataWrapper $wrapper, $contributors) {
+    /*foreach (array('author', 'editor') as $type) { //TODO supervisor
       if (empty($entry[$type])) {
         continue;
-      }
+      }*/
 
       $biblio = $wrapper->value();
 
       // Get array of saved contributor objects from string of names.
-      $contributors = BiblioContributorUtility::getBiblioContributorsFromNames($entry[$type]);
+      //$contributors = BiblioContributorUtility::getBiblioContributorsFromNames($entry[$type]);
+      dpm($contributors);
+      $type = 'author';
 
       foreach ($contributors as $contributor) {
         // Create contributors field collections without saving them.
@@ -246,7 +437,25 @@ class BiblioStyleBibtex extends BiblioStyleBase implements BiblioStyleImportInte
         $term = reset($term);
         $collection_wrapper->biblio_contributor_role->set($term);
       }
+    //}
+  }
+
+  //They are called section in Pubzone, in Biblio we call them categories
+  public function importSections(EntityMetadataWrapper $wrapper, $sections) {
+    if(empty($sections)) {
+      return;
     }
+    $biblio = $wrapper->value();
+
+    dpm($sections);
+    $terms = array();
+    foreach ($sections as $section) {
+      $term = taxonomy_get_term_by_name($section, 'publication_categories');
+      $term = reset($term);
+      $terms[] = $term;
+    }
+    dpm($terms);
+    $wrapper->field_category->set($terms);
   }
 
   /**
@@ -614,7 +823,7 @@ class BiblioStyleBibtex extends BiblioStyleBase implements BiblioStyleImportInte
           'method' => 'formatKeywords',
           'import_method' => 'importKeywords',
         ),
-        'month' => array('property' => 'biblio_date'),
+        'month' => array('property' => 'biblio_month'),
         'note' => array('property' => 'biblio_notes'),
         'number' => array('property' => 'biblio_number'),
         'organization' => array(
@@ -643,12 +852,12 @@ class BiblioStyleBibtex extends BiblioStyleBase implements BiblioStyleImportInte
         ),
         'title' => array('property' => 'title'),
         // Keys used for import.
-        'tertiary_title' => array(
+        'venue_name' => array(
           'property' => 'biblio_tertiary_title',
           'import_method' => 'importTertiaryTitle',
         ),
         // @todo: Is this the Biblio URL?
-        'url' => array('property' => 'biblio_url'),
+        'doi_url' => array('property' => 'biblio_url'),
         'volume' => array('property' => 'biblio_volume'),
         'year' => array('property' => 'biblio_year'),
       ),
