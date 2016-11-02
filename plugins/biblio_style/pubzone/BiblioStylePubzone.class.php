@@ -23,7 +23,7 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
     $query = db_select('publication', 'p');
     $query->join('group_publication', 'gp', 'p.publication_id=gp.publication_id');
     $query->join('venue', 'v', 'p.venue_id=v.venue_id');
-    $query->fields('p', array('title', 'year', 'month', 'publication_id', 'type', 'doi_url', 'abstract'));
+    $query->fields('p', array('title', 'year', 'month', 'publication_id', 'type', 'doi_url', 'abstract')); //TODO supervisor field
     //$query->fields('v', array('name'));
     $query->addField('v', 'name', 'booktitle'); //TODO maybe map to booktitle or secondary title
     $query->condition('gp.group_id', 1);
@@ -47,12 +47,6 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
       $entry = (array) $row;
 
       $biblio_type = $this->getTypeMapping($row->type);
-      //print('<p>'.$row->title.'</p>');
-      //$biblio = biblio_create($newtype, array('title' => $row->title));
-                                            //'biblio_year' => $row->year,
-      biblio_month' => $row->month,
-                                            //'bilbio_url' => $row->doi_url,
-      //));
 
       $biblio = biblio_create($biblio_type);
       //Get wrapper
@@ -82,11 +76,6 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
       $contributors = $this->getPublicationAuthors($row->publication_id);
       $this->importContributors($wrapper, $contributors);
 
-      //Add Supervisor for thesis
-      if ($row->type == 'phd_thesis' || $row->type == 'master_thesis') {
-        //TODO
-        //$biblio->addContributors($row->supervisor, 'Supervisor');
-      }
 
       //Add sections/categories
       $sections = $this->getPublicationSections($row->publication_id);
@@ -103,13 +92,6 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
       //Add to list
       $biblios['success'][] = $wrapper->value();
     }
-
-    //db_set_active('default');
-
-    //$biblio = biblio_create('book', array('title' => 'bulk import test'));
-    //$biblio->addContributors('Jon no DOe');
-
-    //$biblios['success'][] = $biblio;
 
     return $biblios;
   }
@@ -190,60 +172,11 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
    * Get Type Mapping
    */
   public function getTypeMapping($type) {
-    if ($type == 'phd_thesis') {
-      return 'thesis';
-    } else if ($type == 'tech_report') {
-      return 'report';
+    if ($type == 'tech_report') {
+      return 'technical_report';
     } else {
       return $type;
     }
-  }
-
-  /**
-   * Get Section Mapping
-   */
-  public function getSectionMapping($sections) {
-    $new_sections = array();
-
-    foreach($sections as $section_id) {
-    switch ($section_id) {
-      case 1: //Database Systems
-        $nws = 6;
-        break;
-      case 2: //Operating Systems
-        $nws = 10;
-        break;
-      case 9://Distributed Systems
-        $nws = 7;
-        break;
-      case 10; //Networking
-        $nws = 9;
-        break;
-      case 11; //Software Construbtion
-        $nws = 11;
-        break;
-      case 12: //Cloud Computing
-        $nws = 4;
-        break;
-      case 13: //Workflow Systems
-        $nws = 13;
-        break;
-      case 14: //Stream Processing
-        $nws = 12;
-        break;
-      case 61: //High Performance Coputing
-        $nws = 8;
-        break;
-      case 62: //Crowd Sourcing
-        $nws = 5;
-        break;
-      default:
-        $nws = 0;
-      break;
-    } //switch
-    $new_sections[] = $nws;
-    } //for
-    return $new_sections;
   }
 
   /**
@@ -450,7 +383,7 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
     dpm($sections);
     $terms = array();
     foreach ($sections as $section) {
-      $term = taxonomy_get_term_by_name($section, 'publication_categories');
+      $term = taxonomy_get_term_by_name($section, 'biblio_categories');
       $term = reset($term);
       $terms[] = $term;
     }

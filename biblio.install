@@ -16,11 +16,9 @@ function biblio_install() {
  * Implement hook_uninstall().
  */
 function biblio_uninstall() {
+  require_once('biblio.biblio.inc');
 
-  $biblio_fields = array(
-    'biblio_contributor_role',
-	 'biblio_contributor',
-  );
+  $biblio_fields = array_keys($biblio_fields);
 
   foreach (field_info_instances() as $bundles) {
     foreach ($bundles as $instances) {
@@ -39,6 +37,26 @@ function biblio_uninstall() {
 		}
 	 }
   }
+
+  //Delete form field_config
+  foreach($biblio_fields as $field_name) {
+    db_delete('field_config')
+	   ->condition('field_name', $field_name)
+		->execute();
+  }
+
+  //Delete from field_config_instance
+  db_delete('field_config_instance')
+    ->condition('entity_type', 'biblio')
+	 ->execute();
+  db_delete('field_config_instance')
+    ->condition('field_name', 'biblio_contributor')
+	 ->execute();
+  db_delete('field_config_instance')
+    ->condition('field_name', 'biblio_contributor_role')
+	 ->execute();
+
+
 
   //Delete vocabularies
   if ($vocabulary = taxonomy_vocabulary_machine_name_load('biblio_roles')) {

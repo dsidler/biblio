@@ -50,6 +50,7 @@ function biblio_biblio_fields_info() {
         'weight' => '-1',
       ),
     ),
+	 'bundles_info' => array(),
   );
 
   // Image.
@@ -91,6 +92,7 @@ function biblio_biblio_fields_info() {
         'weight' => '-2',
       ),
     ),
+    'bundles_info' => array(),
   );
 
   // PDF file.
@@ -98,7 +100,7 @@ function biblio_biblio_fields_info() {
     'field' => array(
       'field_name' => 'biblio_pdf',
       'type' => 'file',
-      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'cardinality' => 1,
       'locked' => '0',
       'translatable' => '0',
       'settings' => array(
@@ -124,6 +126,69 @@ function biblio_biblio_fields_info() {
       ),
     ),
   );
+
+  $items['biblio_slides_pdf'] = array(
+    'field' => array(
+      'field_name' => 'biblio_slides_pdf',
+      'type' => 'file',
+      'cardinality' => 1,
+      'locked' => '0',
+      'translatable' => '0',
+      'settings' => array(
+        'uri_scheme' => 'public',
+      ),
+    ),
+    'instance' => array(
+      'label' => 'Presentation Slides PDF',
+      'description' => 'PDF for the presentation slides',
+      'settings' => array(
+        'file_directory' => '',
+        'file_extensions' => 'pdf',
+        'max_filesize' => '',
+        'max_resolution' => '',
+        'min_resolution' => '',
+        'title_field' => 0,
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'active' => 1,
+        'type' => 'file_generic',
+        'weight' => '-4',
+      ),
+    ),
+  );
+
+  $items['biblio_poster_pdf'] = array(
+    'field' => array(
+      'field_name' => 'biblio_poster_pdf',
+      'type' => 'file',
+      'cardinality' => 1,
+      'locked' => '0',
+      'translatable' => '0',
+      'settings' => array(
+        'uri_scheme' => 'public',
+      ),
+    ),
+    'instance' => array(
+      'label' => 'Poster PDF',
+      'description' => 'PDF of the poster',
+      'settings' => array(
+        'file_directory' => '',
+        'file_extensions' => 'pdf',
+        'max_filesize' => '',
+        'max_resolution' => '',
+        'min_resolution' => '',
+        'title_field' => 0,
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'active' => 1,
+        'type' => 'file_generic',
+        'weight' => '-4',
+      ),
+    ),
+  );
+
 
   // Other Numbers.
   $items['biblio_other_number'] = array(
@@ -178,8 +243,8 @@ function biblio_biblio_fields_info() {
       ),
     ),
     // @todo: Applies to all?
-    'bundles_info' => array(
-      'artwork' => array(),
+    'bundles_info' => array(),
+      /*'artwork' => array(),
       'audiovisual' => array(),
       'book' => array(),
       'book_chapter' => array(),
@@ -215,7 +280,7 @@ function biblio_biblio_fields_info() {
       'web_project_page' => array(),
       'web_service' => array(),
       'website' => array(),
-    ),
+    ),*/
   );
 
   // Publication year.
@@ -268,6 +333,57 @@ function biblio_biblio_fields_info() {
     ),
   );
 
+  // Publication month.
+  $items['biblio_month'] = array(
+    'field' => array(
+      'cardinality' => '1',
+      'field_name' => 'biblio_month',
+      'foreign keys' => array(),
+      'indexes' => array(),
+      'locked' => '0',
+      'module' => 'number',
+      'settings' => array(),
+      'translatable' => '0',
+      'type' => 'number_integer',
+    ),
+    'instance' => array(
+      'default_value' => NULL,
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'number',
+          'settings' => array(
+            'prefix_suffix' => TRUE,
+            'scale' => 0,
+            'thousand_separator' => ' ',
+          ),
+          'type' => 'number_integer',
+        ),
+      ),
+      'field_name' => 'biblio_month',
+      'label' => 'Month of Publication',
+      // We will enforce required only if the Publication status is set to
+      // "published".
+      'required' => TRUE,
+      'settings' => array(
+        'max' => '12',
+        'min' => '1',
+        'prefix' => '',
+        'suffix' => '',
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'active' => 0,
+        'module' => 'number',
+        'settings' => array(),
+        'type' => 'number',
+        'weight' => 0,
+      ),
+    ),
+  );
+
+
   // First letter; can be used to store the character we would like to later
   // group the publications.
   $items['biblio_first_letter'] = array(
@@ -297,6 +413,7 @@ function biblio_biblio_fields_info() {
         'weight' => '-3',
       ),
     ),
+	 'bundles_info' => array(),
   );
 
   // Section.
@@ -331,7 +448,7 @@ function biblio_biblio_fields_info() {
       'book_chapter' => array(
         'label' => 'Chapter',
       ),
-      'bill' => array(
+      /*'bill' => array(
         'label' => 'Code Section',
       ),
       'case' => array(
@@ -351,7 +468,7 @@ function biblio_biblio_fields_info() {
       ),
       'statute' => array(
         'label' => 'Sections',
-      ),
+      ),*/
     ),
   );
 
@@ -383,13 +500,13 @@ function biblio_biblio_fields_info() {
         'weight' => '-3',
       ),
     ),
-    'bundles_info' => array(
-      'government_report' => array(),
+    'bundles_info' => array(),
+      /*'government_report' => array(),
       'journal_article' => array(),
       'magazine_article' => array(
         'label' => 'Issue Number',
       ),
-    ),
+    ),*/
   );
 
   // Number of volumes.
@@ -419,8 +536,8 @@ function biblio_biblio_fields_info() {
         'weight' => '-3',
       ),
     ),
-    'bundles_info' => array(
-      'audiovisual' => array(
+    'bundles_info' => array(),
+      /*'audiovisual' => array(
         'label' => 'Extent of Work',
       ),
       'book_chapter' => array(),
@@ -449,7 +566,7 @@ function biblio_biblio_fields_info() {
       'statute' => array(
         'label' => 'Statute Number',
       ),
-    ),
+    ),*/
   );
 
   // Number.
@@ -479,8 +596,8 @@ function biblio_biblio_fields_info() {
         'weight' => '-3',
       ),
     ),
-    'bundles_info' => array(
-      'audiovisual' => array(),
+    'bundles_info' => array(),
+      /*'audiovisual' => array(),
       'book' => array(),
       'book_chapter' => array(),
       'bill' => array(
@@ -526,7 +643,7 @@ function biblio_biblio_fields_info() {
       'web_article' => array(
         'label' => 'Access Date',
       ),
-    ),
+    ),*/
   );
 
   // Pages.
@@ -558,13 +675,13 @@ function biblio_biblio_fields_info() {
       ),
     ),
     'bundles_info' => array(
-      'artwork' => array(
+      /*'artwork' => array(
         'label' => 'Description',
-      ),
+      ),*/
       'book' => array(
         'label' => 'Number of Pages',
       ),
-      'bill' => array(
+      /*'bill' => array(
         'label' => 'Code Pages',
       ),
       'case' => array(
@@ -626,12 +743,12 @@ function biblio_biblio_fields_info() {
       ),
       'web_article' => array(
         'label' => 'Description',
-      ),
+      ),*/
     ),
   );
 
   // Date.
-  $items['biblio_date'] = array(
+  /*$items['biblio_date'] = array(
     'field' => array(
       'cardinality' => '1',
       'field_name' => 'biblio_date',
@@ -662,10 +779,10 @@ function biblio_biblio_fields_info() {
         'label' => 'Issue Date',
       ),
     ),
-  );
+  );*/
 
   // Reprint edition.
-  $items['biblio_reprint_edition'] = array(
+  /*$items['biblio_reprint_edition'] = array(
     'field' => array(
       'cardinality' => '1',
       'field_name' => 'biblio_reprint_edition',
@@ -699,10 +816,10 @@ function biblio_biblio_fields_info() {
       'magazine_article' => array(),
       'newspaper_article' => array(),
     ),
-  );
+  );*/
 
   // Call number.
-  $items['biblio_call_number'] = array(
+  /*$items['biblio_call_number'] = array(
     'field' => array(
       'cardinality' => '1',
       'field_name' => 'biblio_call_number',
@@ -766,7 +883,7 @@ function biblio_biblio_fields_info() {
       'web_service' => array(),
       'website' => array(),
     ),
-  );
+  );*/
 
   // ISBN number.
   $items['biblio_isbn'] = array(
@@ -798,11 +915,11 @@ function biblio_biblio_fields_info() {
     ),
     // @todo: Applies to all?
     'bundles_info' => array(
-      'artwork' => array(),
-      'audiovisual' => array(),
+      /*'artwork' => array(),
+      'audiovisual' => array(),*/
       'book' => array(),
       'book_chapter' => array(),
-      'bill' => array(),
+      /*'bill' => array(),
       'broadcast' => array(),
       'case' => array(),
       'chart' => array(),
@@ -833,7 +950,7 @@ function biblio_biblio_fields_info() {
       'web_article' => array(),
       'web_project_page' => array(),
       'web_service' => array(),
-      'website' => array(),
+      'website' => array(),*/
     ),
   );
 
@@ -865,8 +982,8 @@ function biblio_biblio_fields_info() {
         'weight' => '-3',
       ),
     ),
-    'bundles_info' => array(
-      'journal_article' => array(
+    'bundles_info' => array(),
+      /*'journal_article' => array(
         'label' => 'ISSN',
       ),
       'legal_ruling' => array(
@@ -895,7 +1012,7 @@ function biblio_biblio_fields_info() {
       'web_article' => array(
         'label' => 'ISSN',
       ),
-    ),
+    ),*/
   );
 
   // Accession number
@@ -927,12 +1044,12 @@ function biblio_biblio_fields_info() {
       ),
     ),
     // @todo: Applies to all?
-    'bundles_info' => array(
-      'artwork' => array(),
-      'audiovisual' => array(),
-      'book' => array(),
-      'book_chapter' => array(),
-      'bill' => array(),
+    'bundles_info' => array(),
+      /*'artwork' => array(),
+      'audiovisual' => array(),*/
+      /*'book' => array(),
+      'book_chapter' => array(),*/
+      /*'bill' => array(),
       'broadcast' => array(),
       'case' => array(),
       'chart' => array(),
@@ -964,8 +1081,8 @@ function biblio_biblio_fields_info() {
       'web_article' => array(),
       'web_project_page' => array(),
       'web_service' => array(),
-      'website' => array(),
-    ),
+      'website' => array(),*/
+    //),
   );
 
   // Keywords.
@@ -1021,6 +1138,7 @@ function biblio_biblio_fields_info() {
         'weight' => '-3',
       ),
     ),
+	 'bundles_info' => array(),
   );
 
   // Research notes.
@@ -1047,6 +1165,7 @@ function biblio_biblio_fields_info() {
         'weight' => '-3',
       ),
     ),
+    'bundles_info' => array(),
   );
 
   // Translated title.
@@ -1076,6 +1195,7 @@ function biblio_biblio_fields_info() {
         'weight' => '-3',
       ),
     ),
+    'bundles_info' => array(),
   );
 
   // Summary char; can be used to store the character we would like to later
@@ -1107,6 +1227,7 @@ function biblio_biblio_fields_info() {
         'weight' => '-3',
       ),
     ),
+    'bundles_info' => array(),
   );
 
   // Contributor fields.
@@ -1251,11 +1372,11 @@ function biblio_biblio_fields_info() {
       ),
     ),
     'bundles_info' => array(
-      'artwork' => array(),
-      'audiovisual' => array(),
+      /*'artwork' => array(),
+      'audiovisual' => array(),*/
       'book' => array(),
       'book_chapter' => array(),
-      'bill' => array(),
+      /*'bill' => array(),
       'case' => array(
         'label' => 'Abbreviated Case Name',
       ),
@@ -1275,7 +1396,7 @@ function biblio_biblio_fields_info() {
       'statute' => array(),
       'thesis' => array(),
       'unpublished' => array(),
-      'web_article' => array(),
+      'web_article' => array(),*/
     )
   );
 
@@ -1307,8 +1428,8 @@ function biblio_biblio_fields_info() {
         'weight' => '-3',
       ),
     ),
-    'bundles_info' => array(
-      'artwork' => array(),
+    'bundles_info' => array(),
+      /*'artwork' => array(),
       'audiovisual' => array(),
       'book' => array(
         'label' => 'Abbreviation',
@@ -1341,8 +1462,8 @@ function biblio_biblio_fields_info() {
       'unpublished' => array(
         'label' => 'Abbreviation',
       ),
-      'web_article' => array(),
-    ),
+      'web_article' => array(),*/
+    //),
   );
 
   // Type of work.
@@ -1374,7 +1495,7 @@ function biblio_biblio_fields_info() {
       ),
     ),
     'bundles_info' => array(
-      'audiovisual' => array(
+      /*'audiovisual' => array(
         'label' => 'Type',
       ),
       'book' => array(),
@@ -1417,7 +1538,7 @@ function biblio_biblio_fields_info() {
       'unpublished' => array(),
       'web_article' => array(
         'label' => 'Type of Medium',
-      ),
+      ),*/
     ),
   );
 
@@ -1450,7 +1571,7 @@ function biblio_biblio_fields_info() {
       ),
     ),
     // @todo: Applies to all?
-    'bundles_info' => array(
+    /*'bundles_info' => array(
       'artwork' => array(),
       'audiovisual' => array(),
       'book' => array(),
@@ -1487,7 +1608,7 @@ function biblio_biblio_fields_info() {
       'web_project_page' => array(),
       'web_service' => array(),
       'website' => array(),
-    ),
+    ),*/
   );
 
   // Biblio volume.
@@ -1520,7 +1641,7 @@ function biblio_biblio_fields_info() {
     ),
     'bundles_info' => array(
       'book' => array(),
-      'bill' => array(
+      /*'bill' => array(
         'label' => 'Code Volume',
       ),
       'case' => array(
@@ -1531,9 +1652,9 @@ function biblio_biblio_fields_info() {
       ),
       'classical' => array(),
       'conference_proceedings' => array(),
-      'government_report' => array(),
+      'government_report' => array(),*/
       'journal_article' => array(),
-      'legal_ruling' => array(
+      /*'legal_ruling' => array(
         'label' => 'Rule Number',
       ),
       'manuscript' => array(
@@ -1550,7 +1671,7 @@ function biblio_biblio_fields_info() {
       ),
       'web_article' => array(
         'label' => 'Access Year',
-      ),
+      ),*/
     ),
   );
 
@@ -1583,8 +1704,8 @@ function biblio_biblio_fields_info() {
       ),
     ),
     // @todo: Applies to all?
-    'bundles_info' => array(
-      'artwork' => array(),
+    'bundles_info' => array(),
+      /*'artwork' => array(),
       'audiovisual' => array(),
       'book' => array(),
       'book_chapter' => array(),
@@ -1619,8 +1740,8 @@ function biblio_biblio_fields_info() {
       'web_article' => array(),
       'web_project_page' => array(),
       'web_service' => array(),
-      'website' => array(),
-    )
+      'website' => array(),*/
+    //)
   );
 
   // Biblio place published.
@@ -1651,8 +1772,8 @@ function biblio_biblio_fields_info() {
         'weight' => '-3',
       ),
     ),
-    'bundles_info' => array(
-      'audiovisual' => array(),
+    'bundles_info' => array(),
+      /*'audiovisual' => array(),
       'artwork' => array(),
       'book' => array(),
       'book_chapter' => array(),
@@ -1679,8 +1800,8 @@ function biblio_biblio_fields_info() {
       ),
       'thesis' => array(),
       'unpublished' => array(),
-      'web_article' => array(),
-    ),
+      'web_article' => array(),*/
+    //),
   );
 
   // Biblio publisher.
@@ -1712,11 +1833,11 @@ function biblio_biblio_fields_info() {
       ),
     ),
     'bundles_info' => array(
-      'artwork' => array(),
-      'audiovisual' => array(),
+      //'artwork' => array(),
+      //'audiovisual' => array(),
       'book' => array(),
       'book_chapter' => array(),
-      'case' => array(
+      /*'case' => array(
         'label' => 'Court',
       ),
       'chart' => array(),
@@ -1746,7 +1867,7 @@ function biblio_biblio_fields_info() {
       'unpublished' => array(
         'label' => 'Institution',
       ),
-      'web_article' => array(),
+      'web_article' => array(),*/
     ),
   );
 
@@ -1779,10 +1900,10 @@ function biblio_biblio_fields_info() {
       ),
     ),
     'bundles_info' => array(
-      'audiovisual' => array(),
+      //'audiovisual' => array(),
       'book' => array(),
       'book_chapter' => array(),
-      'bill' =>array(
+      /*'bill' =>array(
         'label' => 'Session',
       ),
       'chart' => array(
@@ -1809,7 +1930,7 @@ function biblio_biblio_fields_info() {
       'statute' => array(
         'label' => 'Session',
       ),
-      'web_article' => array(),
+      'web_article' => array(),*/
     ),
   );
 
@@ -1842,16 +1963,16 @@ function biblio_biblio_fields_info() {
       ),
     ),
     'bundles_info' => array(
-      'audiovisual' => array(
+      /*'audiovisual' => array(
         'label' => 'Series Title',
-      ),
+      ),*/
       'book' => array(
         'label' => 'Series Title',
       ),
       'book_chapter' => array(
         'label' => 'Book Title',
       ),
-      'bill' => array(
+      /*'bill' => array(
         'label' => 'Code',
       ),
       'case' => array(
@@ -1862,11 +1983,11 @@ function biblio_biblio_fields_info() {
       ),
       'classical' => array(
         'label' => 'Series Title',
-      ),
+      ),*/
       'conference_paper' => array(
         'label' => 'Conference Name',
       ),
-      'conference_proceedings' => array(
+      /*'conference_proceedings' => array(
         'label' => 'Conference Name',
       ),
       'database' => array(
@@ -1880,11 +2001,11 @@ function biblio_biblio_fields_info() {
       ),
       'hearing' => array(
         'label' => 'Committee',
-      ),
+      ),*/
       'journal_article' => array(
         'label' => 'Journal',
       ),
-      'manuscript' => array(
+      /*'manuscript' => array(
         'label' => 'Collection Title',
       ),
       'map' => array(
@@ -1909,7 +2030,7 @@ function biblio_biblio_fields_info() {
         'label' => 'Academic Department',
       ),
       'unpublished' => array(),
-      'web_article' => array(),
+      'web_article' => array(),*/
     ),
   );
 
@@ -1945,7 +2066,7 @@ function biblio_biblio_fields_info() {
       'book_chapter' => array(
         'label' => 'Series Title',
       ),
-      'bill' => array(
+      /*'bill' => array(
         'label' => 'Legislative Body',
       ),
       'chart' => array(
@@ -1962,7 +2083,7 @@ function biblio_biblio_fields_info() {
       ),
       'patent' => array(
         'label' => 'International Title',
-      ),
+      ),*/
     ),
   );
 
@@ -1994,8 +2115,8 @@ function biblio_biblio_fields_info() {
       ),
     ),
     // @todo: Applies to all?
-    'bundles_info' => array(
-      'artwork' => array(),
+    'bundles_info' => array(),
+      /*'artwork' => array(),
       'audiovisual' => array(),
       'book' => array(),
       'book_chapter' => array(),
@@ -2021,8 +2142,8 @@ function biblio_biblio_fields_info() {
       'statute' => array(),
       'thesis' => array(),
       'unpublished' => array(),
-      'web_article' => array(),
-    ),
+      'web_article' => array(),*/
+    //),
   );
 
   // Original publication.
@@ -2052,8 +2173,8 @@ function biblio_biblio_fields_info() {
         'weight' => '-3',
       ),
     ),
-    'bundles_info' => array(
-      'audiovisual' => array(
+    'bundles_info' => array(),
+      /*'audiovisual' => array(
         'label' => 'Contents',
       ),
       'book' => array(),
@@ -2084,8 +2205,8 @@ function biblio_biblio_fields_info() {
       'thesis' => array(),
       'web_article' => array(
         'label' => 'Contents',
-      ),
-    ),
+      ),*/
+    //),
   );
 
   // Publication status.
@@ -2150,10 +2271,11 @@ function biblio_biblio_fields_info() {
         'weight' => '-3',
       ),
     ),
+	 'bundles_infor' => array(),
   );
 
   // Custom1.
-  $items['biblio_custom1'] = array(
+  /*$items['biblio_custom1'] = array(
     'field' => array(
       'cardinality' => '1',
       'field_name' => 'biblio_custom1',
@@ -2363,10 +2485,10 @@ function biblio_biblio_fields_info() {
       ),
       'thesis' => array(),
     ),
-  );
+  );*/
 
   // Custom7.
-  $items['biblio_custom7'] = array(
+  /*$items['biblio_custom7'] = array(
     'field' => array(
       'cardinality' => '1',
       'field_name' => 'biblio_custom7',
@@ -2394,6 +2516,40 @@ function biblio_biblio_fields_info() {
     ),
     'bundles_info' => array(
       'thesis' => array(),
+		'phd_thesis' => array(),
+    ),
+  );*/
+
+  $items['biblio_supervisor'] = array(
+    'field' => array(
+      'cardinality' => '1',
+      'field_name' => 'biblio_supervisor',
+      'module' => 'text',
+      'settings' => array(
+        'max_length' => '255',
+      ),
+      'type' => 'text',
+    ),
+    'instance' => array(
+      'label' => 'Supervisor of Thesis',
+		'required' => TRUE,
+      'settings' => array(
+        'text_processing' => '0',
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'size' => '60',
+        ),
+        'type' => 'text_textfield',
+        'weight' => '-3',
+      ),
+    ),
+    'bundles_info' => array(
+      'master_thesis' => array(),
+		'phd_thesis' => array(),
     ),
   );
 
@@ -2404,24 +2560,24 @@ function biblio_biblio_fields_info() {
  * Implements hook_biblio_types_info().
  */
 function biblio_biblio_types_info() {
-  $types['audiovisual'] = array('name' => 'Audiovisual');
+  /*$types['audiovisual'] = array('name' => 'Audiovisual');
   $types['artwork'] = array('name' => 'Artwork');
-  $types['bill'] = array('name' => 'Bill');
+  $types['bill'] = array('name' => 'Bill');*/
   $types['book'] = array('name' => 'Book');
   $types['book_chapter'] = array('name' => 'Book Chapter');
-  $types['broadcast'] = array('name' => 'Broadcast');
+  /*$types['broadcast'] = array('name' => 'Broadcast');
   $types['case'] = array('name' => 'Case');
   $types['chart'] = array('name' => 'Chart');
-  $types['classical'] = array('name' => 'Classical');
+  $types['classical'] = array('name' => 'Classical');*/
   $types['conference_paper'] = array('name' => 'Conference Paper');
-  $types['conference_proceedings'] = array('name' => 'Conference Proceedings');
+  /*$types['conference_proceedings'] = array('name' => 'Conference Proceedings');
   $types['database'] = array('name' => 'Database');
   $types['film'] = array('name' => 'Film');
   $types['government_report'] = array('name' => 'Government Report');
   $types['hearing'] = array('name' => 'Hearing');
-  $types['journal'] = array('name' => 'Journal');
+  $types['journal'] = array('name' => 'Journal');*/
   $types['journal_article'] = array('name' => 'Journal Article');
-  $types['legal_ruling'] = array('name' => 'Legal Ruling');
+  /*$types['legal_ruling'] = array('name' => 'Legal Ruling');
   $types['magazine_article'] = array('name' => 'Magazine Article');
   $types['manuscript'] = array('name' => 'Manuscript');
   $types['map'] = array('name' => 'Map');
@@ -2439,9 +2595,16 @@ function biblio_biblio_types_info() {
   $types['web_article'] = array('name' => 'Web Article');
   $types['web_project_page'] = array('name' => 'Web project page');
   $types['web_service'] = array('name' => 'Web service');
-  $types['website'] = array('name' => 'Website');
+  $types['website'] = array('name' => 'Website');*/
+
+  // Types added for Systems Group
+  $types['demo'] = array('name' => 'Demo');
+  $types['master_thesis'] = array('name' => 'Master Thesis');
+  $types['phd_thesis'] = array('name' => 'PhD Thesis');
+  $types['technical_report'] = array('name' => 'Technical Report');
+  $types['workshop_paper'] = array('name' => 'Workshop Paper');
 
   return $types;
 }
 
-?>
+
