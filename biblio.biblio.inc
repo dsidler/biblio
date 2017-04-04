@@ -189,6 +189,32 @@ function biblio_biblio_fields_info() {
     ),
   );
 
+  $items['biblio_category'] = array(
+    'field' => array(
+      'field_name' => 'biblio_category',
+      'type' => 'taxonomy_term_reference',
+      'module' => 'taxonomy',
+      'active' => '1',
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+    ),
+    'instance' => array(
+      'label' => 'Publication Category',
+      'settings' => array(
+        'allowed_values' => array(
+          0 => array(
+            'vocabulary' => 'biblio_categories',
+            'parent' => '0',
+          ),
+        ),
+      ),
+      'widget' => array(
+        'type' => 'options_buttons',
+        'module' => 'options',
+        'active' => 1,
+      ),
+    ),
+  );
+
 
   // Other Numbers.
   $items['biblio_other_number'] = array(
