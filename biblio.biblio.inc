@@ -15,7 +15,7 @@ function biblio_biblio_fields_info() {
     ),
     'instance' => array(
       'label' => 'Publication abstract',
-      'description' => 'Holds generic info the biblio.',
+      //'description' => 'Holds generic info the biblio.',
       'widget' => array(
         'active' => 1,
         'module' => 'text',
@@ -23,7 +23,7 @@ function biblio_biblio_fields_info() {
           'rows' => '5',
         ),
         'type' => 'text_textarea',
-        'weight' => '-1',
+        'weight' => '4',
       ),
     ),
   );
@@ -122,7 +122,7 @@ function biblio_biblio_fields_info() {
       'widget' => array(
         'active' => 1,
         'type' => 'file_generic',
-        'weight' => '-4',
+        'weight' => '10',
       ),
     ),
   );
@@ -153,7 +153,7 @@ function biblio_biblio_fields_info() {
       'widget' => array(
         'active' => 1,
         'type' => 'file_generic',
-        'weight' => '-4',
+        'weight' => '11',
       ),
     ),
   );
@@ -184,11 +184,75 @@ function biblio_biblio_fields_info() {
       'widget' => array(
         'active' => 1,
         'type' => 'file_generic',
-        'weight' => '-4',
+        'weight' => '12',
       ),
     ),
   );
 
+  $items['biblio_video'] = array(
+    'description' => 'Video',
+    'field' => array(
+      'cardinality' => 1,
+      'field_name' => 'biblio_video',
+      'module' => 'text',
+      'settings' => array(
+        'max_length' => '255',
+      ),
+      'type' => 'text',
+    ),
+    'instance' => array(
+      'label' => 'Video',
+      'description' => 'You can put your video url here',
+      'settings' => array(
+        'text_processing' => '0',
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'size' => '60',
+        ),
+        'type' => 'text_textfield',
+        'weight' => '13',
+      ),
+    ),
+   );
+
+  $items['biblio_category'] = array(
+    'field' => array(
+      'field_name' => 'biblio_category',
+      'type' => 'taxonomy_term_reference',
+      'module' => 'taxonomy',
+      'active' => 1,
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'settings' => array(
+        'allowed_values' => array(
+          array(
+            'vocabulary' => 'biblio_categories',
+            'parent' => 0,
+          ),
+        ),
+      ),
+    ),
+    'instance' => array(
+      'label' => 'Publication Category',
+      'settings' => array(
+        'allowed_values' => array(
+          0 => array(
+            'vocabulary' => 'biblio_categories',
+            'parent' => 0,
+          ),
+        ),
+      ),
+      'widget' => array(
+        'type' => 'options_buttons',
+        'module' => 'options',
+        'active' => 1,
+        'weight' => '16',
+      ),
+    ),
+  );
 
   // Other Numbers.
   $items['biblio_other_number'] = array(
@@ -315,7 +379,7 @@ function biblio_biblio_fields_info() {
       'label' => 'Year of Publication',
       // We will enforce required only if the Publication status is set to
       // "published".
-      'required' => FALSE,
+      'required' => TRUE,
       'settings' => array(
         'max' => '9999',
         'min' => '-9999',
@@ -328,7 +392,7 @@ function biblio_biblio_fields_info() {
         'module' => 'number',
         'settings' => array(),
         'type' => 'number',
-        'weight' => 0,
+        'weight' => '7',
       ),
     ),
   );
@@ -348,7 +412,7 @@ function biblio_biblio_fields_info() {
     ),
     'instance' => array(
       'default_value' => NULL,
-      'description' => '',
+      'description' => 'Type in a number between 1-12',
       'display' => array(
         'default' => array(
           'label' => 'above',
@@ -378,7 +442,7 @@ function biblio_biblio_fields_info() {
         'module' => 'number',
         'settings' => array(),
         'type' => 'number',
-        'weight' => 0,
+        'weight' => '6',
       ),
     ),
   );
@@ -1109,7 +1173,7 @@ function biblio_biblio_fields_info() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '-3',
+        'weight' => '16',
       ),
     ),
   );
@@ -1257,7 +1321,7 @@ function biblio_biblio_fields_info() {
         'module' => 'field_collection',
         'settings' => array(),
         'type' => 'field_collection_embed',
-        'weight' => 0,
+        'weight' => '8',
       ),
     ),
   );
@@ -1556,6 +1620,7 @@ function biblio_biblio_fields_info() {
     ),
     'instance' => array(
       'label' => 'URL',
+      'description' => 'You can put your DOI url here',
       'settings' => array(
         'text_processing' => '0',
         'user_register_form' => FALSE,
@@ -1567,7 +1632,7 @@ function biblio_biblio_fields_info() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '-3',
+        'weight' => '14',
       ),
     ),
     // @todo: Applies to all?
@@ -1948,6 +2013,7 @@ function biblio_biblio_fields_info() {
     ),
     'instance' => array(
       'label' => 'Secondary title',
+      'required' => TRUE,
       'settings' => array(
         'text_processing' => '0',
         'user_register_form' => FALSE,
@@ -1959,7 +2025,7 @@ function biblio_biblio_fields_info() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '-3',
+        'weight' => '5',
       ),
     ),
     'bundles_info' => array(
@@ -2028,8 +2094,15 @@ function biblio_biblio_fields_info() {
       ),
       'thesis' => array(
         'label' => 'Academic Department',
-      ),
-      'unpublished' => array(),
+      ),*/
+      'phd_thesis' => array(),
+        /*'label' => 'Academic Department',
+      ),*/
+      'master_thesis' => array(),
+        /*'label' => 'Academic Department',
+      ),*/
+
+      /*'unpublished' => array(),
       'web_article' => array(),*/
     ),
   );
@@ -2236,7 +2309,7 @@ function biblio_biblio_fields_info() {
       'widget' => array(
         'module' => 'options',
         'type' => 'options_select',
-        'weight' => 0,
+        'weight' => '20',
         'settings' => array(
           'display_label' => TRUE,
         ),
@@ -2271,7 +2344,7 @@ function biblio_biblio_fields_info() {
         'weight' => '-3',
       ),
     ),
-	 'bundles_infor' => array(),
+	 'bundles_info' => array(),
   );
 
   // Custom1.
@@ -2532,7 +2605,7 @@ function biblio_biblio_fields_info() {
     ),
     'instance' => array(
       'label' => 'Supervisor of Thesis',
-		'required' => TRUE,
+		  'required' => TRUE,
       'settings' => array(
         'text_processing' => '0',
         'user_register_form' => FALSE,
@@ -2544,12 +2617,12 @@ function biblio_biblio_fields_info() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '-3',
+        'weight' => '9',
       ),
     ),
     'bundles_info' => array(
       'master_thesis' => array(),
-		'phd_thesis' => array(),
+		  'phd_thesis' => array(),
     ),
   );
 

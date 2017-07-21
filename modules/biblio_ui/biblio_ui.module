@@ -954,11 +954,11 @@ function biblio_ui_contributor_create_form($form, &$form_state, BiblioContributo
   }
   $form_state['#entity'] = $contributor;
 
-  $form['prefix'] = array(
+  /*$form['prefix'] = array(
     '#type' => 'textfield',
     '#title' => t('Prefix'),
     '#default_value' => $contributor->prefix,
-  );
+  );*/
 
   $form['firstname'] = array(
     '#type' => 'textfield',
@@ -966,11 +966,11 @@ function biblio_ui_contributor_create_form($form, &$form_state, BiblioContributo
     '#default_value' => $contributor->firstname,
   );
 
-  $form['initials'] = array(
+  /*$form['initials'] = array(
     '#type' => 'textfield',
     '#title' => t('Initials'),
     '#default_value' => $contributor->initials,
-  );
+  );*/
 
   $form['lastname'] = array(
     '#type' => 'textfield',
@@ -978,11 +978,11 @@ function biblio_ui_contributor_create_form($form, &$form_state, BiblioContributo
     '#default_value' => $contributor->lastname,
   );
 
-  $form['suffix'] = array(
+  /*$form['suffix'] = array(
     '#type' => 'textfield',
     '#title' => t('Suffix'),
     '#default_value' => $contributor->suffix,
-  );
+  );*/
 
   if (!empty($contributor->name)) {
     $form['name'] = array(
@@ -1050,7 +1050,7 @@ function biblio_ui_contributor_create_form_validate($form, $form_state) {
  */
 function biblio_ui_contributor_create_form_submit($form, &$form_state) {
   $contributor = $form_state['#entity'];
-  $keys = array('prefix', 'firstname', 'initials', 'lastname', 'suffix');
+  $keys = array('firstname', 'lastname');
 
   foreach ($keys as $key) {
     $contributor->{$key} = $form_state['values'][$key];

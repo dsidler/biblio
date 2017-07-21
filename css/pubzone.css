@@ -1,0 +1,44 @@
+.pub {
+  margin: 20px 0px;
+}
+.pub-title {
+  font-weight:bold;
+  font-size: 16px;
+}
+.pub-author {
+}
+
+.pub-links {
+  float:right;
+  height: 100%;
+  margin-left:20px;
+}
+
+.pub-links a {
+  padding: 2px;
+}
+
+.pub-meta {
+  margin-top: 5px;
+}
+
+.pub-meta a {
+  text-decoration: none;
+  border-right: 1px solid #337ab7;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.pub-meta a.pub-cite {
+  border-left: 1px solid #337ab7;
+}
+
+.pub-extras {
+  margin: 10px 45px 0px 25px;
+  display:none;
+}
+
+.pub-extras .well,
+.pub-extras pre {
+  margin-top:7px;
+}

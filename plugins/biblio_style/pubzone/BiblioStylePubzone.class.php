@@ -23,19 +23,22 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
     $query = db_select('publication', 'p');
     $query->join('group_publication', 'gp', 'p.publication_id=gp.publication_id');
     $query->join('venue', 'v', 'p.venue_id=v.venue_id');
-    $query->fields('p', array('title', 'year', 'month', 'publication_id', 'type', 'doi_url', 'abstract')); //TODO supervisor field
+    $query->join('attachment', 'a', 'p.pdf_file=a.attachment_id');
+    $query->fields('p', array('title', 'year', 'month', 'publication_id', 'type', 'doi_url', 'abstract', 'supervisor', 'venueName'));
     //$query->fields('v', array('name'));
     $query->addField('v', 'name', 'booktitle'); //TODO maybe map to booktitle or secondary title
+    //$query->fields('a', array('contentType', 'description', 'filename'));
+    $query->addField('a', 'filename', 'pdf');
     $query->condition('gp.group_id', 1);
     $query->condition('p.is_deleted', 0);
     $query->condition('p.isActive', 1);
     $query->orderBy('p.year', 'ASC');
     $query->orderBy('p.month', 'ASC');
     $query->orderBy('p.publication_id', 'ASC');
-    $query->range(200,1);
+    //This limits the import to 100
+    //$query->range(1,99);
 
     //TODO keywords
-    //TODO Supervisor
     
     $result = $query->execute();
     db_set_active('default');
@@ -44,14 +47,28 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
       if ($row->type == 'book_chapter') {
         continue;
       }
+      //check if title or type is NULL
+      if (!$row->type || !$row->title) {
+        continue;
+      }
+      if ($row->type == 'phd_thesis' || $row->type == 'master_thesis') {
+        if ($row->venueName) {
+          $row->booktitle = $row->venueName;
+        }
+      }
+
+
       $entry = (array) $row;
+      //Remove HTML special encoding
+      foreach($entry as $k => $v) {
+        $entry[$k] =  html_entity_decode($v);
+      }
 
       $biblio_type = $this->getTypeMapping($row->type);
-
+      
       $biblio = biblio_create($biblio_type);
       //Get wrapper
       $wrapper = entity_metadata_wrapper('biblio', $biblio);
-
       foreach (array_keys($map) as $key) {
         if (in_array($key, array('author', 'editor'))) { //TODO add supervisor
           continue;
@@ -59,6 +76,7 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
         
         //Get property_name
         $property_name = $map[$key]['property'];
+
         if (!isset($wrapper->{$property_name})) {
           //biblio_create_field($property_name, 'biblio', $biblio_type);
           continue;
@@ -67,10 +85,9 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
         $method = $map[$key]['import_method'];
         $this->{$method}($wrapper, $key, $entry);
 
-      } //foreach
+      } //foreach $map
 
-      //TODO month, pdf slides, poster
-      //publicatino PDF
+      //TODO month, should be done automatically
 
       //Add contributors
       $contributors = $this->getPublicationAuthors($row->publication_id);
@@ -82,16 +99,17 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
       $this->importSections($wrapper, $sections);
 
       //Add keywords
+      //TODO this is broken
       $keywords = $this->getPublicationKeywords($row->publication_id);
       if (!empty($keywords)) {
+        //dpm($keywords);
         $this->importKeywordsList($wrapper, $keywords);
+        //dpm("HERE");
       }
 
-      dpm($entry);
-      dpm($wrapper->value());
       //Add to list
       $biblios['success'][] = $wrapper->value();
-    }
+    } //foreach $row
 
     return $biblios;
   }
@@ -113,8 +131,8 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
 
     $contributors = array();
     foreach($authors as $author) {
-      $contributor_array['firstname'] = trim($author->first_name);
-      $contributor_array['lastname'] = trim($author->last_name);
+      $contributor_array['firstname'] = html_entity_decode(trim($author->first_name));
+      $contributor_array['lastname'] = html_entity_decode(trim($author->last_name));
       $contributor_array['initials'] = '';//($contributor_array['firstname'][0].$contributor_array['lastname'][0]);
       $contributor_array['prefix'] = '';
       $contributor_array['suffix'] = '';
@@ -162,7 +180,7 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
     $keywords = array();
 
     foreach($result as $row) {
-      $sections[] = $row->section_name;
+      $keywords[] = $row->keyword;
     }
 
     return $keywords;
@@ -309,6 +327,25 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
       return;
     }
 
+    $months = array('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December');
+    foreach($months as $month) {
+      if (($mpos = strpos($value, $month)) !== false) {
+        dpm('333');
+        dpm($value);
+        //Find last comma
+        $cpos = strpos($value, ',', $mpos - 3);
+        if ($cpos !== false && $cpos < $mpos) {
+          if ($value[$cpos-1] == ' ') {
+            $value = substr($value, 0, $cpos-1);
+          } else {
+            $value = substr($value, 0, $cpos);
+          }
+          dpm($value);
+        }
+        break;
+      }
+    }
+
     $entry[$key] = $value;
     $this->importGeneric($wrapper, $key, $entry);
   }
@@ -324,6 +361,7 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
    *   The data to import from.
    */
   public function importTertiaryTitle(EntityMetadataWrapper $wrapper, $key, $entry) {
+    dpm($entry);
     if (empty($entry['series']) || empty($entry['booktitle'])) {
       return;
     }
@@ -341,7 +379,7 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
    *   The data to import from.
    */
   public function importContributors(EntityMetadataWrapper $wrapper, $contributors) {
-    /*foreach (array('author', 'editor') as $type) { //TODO supervisor
+    /*foreach (array('author', 'editor') as $type) {
       if (empty($entry[$type])) {
         continue;
       }*/
@@ -350,7 +388,6 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
 
       // Get array of saved contributor objects from string of names.
       //$contributors = BiblioContributorUtility::getBiblioContributorsFromNames($entry[$type]);
-      dpm($contributors);
       $type = 'author';
 
       foreach ($contributors as $contributor) {
@@ -374,21 +411,61 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
   }
 
   //They are called section in Pubzone, in Biblio we call them categories
+  //TODO potentially could be replaced by importKeywordsList
   public function importSections(EntityMetadataWrapper $wrapper, $sections) {
     if(empty($sections)) {
       return;
     }
     $biblio = $wrapper->value();
 
-    dpm($sections);
     $terms = array();
     foreach ($sections as $section) {
       $term = taxonomy_get_term_by_name($section, 'biblio_categories');
       $term = reset($term);
       $terms[] = $term;
     }
-    dpm($terms);
-    $wrapper->field_category->set($terms);
+    $wrapper->biblio_category->set($terms);
+  }
+
+  public function importSupervisor(EntityMetadataWrapper $wrapper, $key, $entry) {
+    if (empty($entry[$key])) {
+      return;
+    }
+    //TODO is this function necessary??
+    $this->importGeneric($wrapper, $key, $entry);
+  }
+
+  public function importPDF(EntityMetadataWrapper $wrapper, $key, $entry) {
+    if (empty($entry[$key])) {
+      return;
+    }
+    //Check if file exists
+    $filename = $entry[$key];
+    //replace whitespace
+    $filename = str_replace(' ', '_', $filename);
+    $base = variable_get('file_public_path', conf_path().'/files');
+    $path = $base.'/pubzone/'.$filename;
+    if (file_exists($path)) {
+      $file = new stdClass();
+      $file->uid = 1;
+      $file->uri= $path;
+      $file->filename = $filename;
+      $file->filemime = file_get_mimetype($path);
+      $file->filesize = filesize($path);
+      $file->status = FILE_STATUS_PERMANENT;
+      $file->display = '1';
+      //Check if file already saved
+      $files = file_load_multiple(array(), array('uri' => $path));
+      $efile = reset($files);
+      if ($efile == false) {
+        file_save($file);
+        $wrapper->biblio_pdf->set((array) $file);
+      } else {
+        $efile->display = '1';
+        file_save($efile);
+        $wrapper->biblio_pdf->set((array) $efile);
+      }
+    }
   }
 
   /**
@@ -400,60 +477,92 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
     $wrapper = entity_metadata_wrapper('biblio', $biblio);
     $type = $this->biblio->type;
 
+    //TODO what is this???
     if ($type == 'thesis' && !empty($wrapper->biblio_type_of_work) && strpos($wrapper->biblio_type_of_work->value(), 'masters') === TRUE) {
       $type = 'mastersthesis';
     }
+    //debug
+    /*if ($type == 'phd_thesis') {
+            dpm($biblio);
+    }*/
     $type_info = biblio_get_types_info($type);
 
-    $output = array();
-    $output[] = '@' . $type_info['name'] . '{';
+    $output = ''; //array();
+    $links = '';
+    $extras = '';
 
     $map = $this->getMapping();
-    foreach ($map['field'] as $key => $info) {
+
+    $show_fields = array('title',
+                        'author',
+                        'secondary_title',
+                        'venue_name', //TODO
+                        'month',
+                        'year',
+                        'supervisor',
+                        'doi_url',
+                        'pdf',
+                        'slides_pdf',
+                        'poster_pdf',
+                        'video',
+                        'abstract' );
+
+    foreach($show_fields as $field) {
+      $info = $map['field'][$field];
       $method = $info['method'];
       $property = $info['property'];
-      $use_key = $info['use_key'];
-
-      $wrapper = entity_metadata_wrapper('biblio', $this->biblio);
 
       if (empty($wrapper->{$property})) {
         continue;
       }
-
-      if (!$value = $this->{$method}($wrapper, $property)) {
+      if(!$value = $this->{$method}($wrapper, $property)) {
         continue;
       }
+      
+      //debug, TODO move to import
+      /*if ($property == 'biblio_secondary_title') {
+        $months = array('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December');
+         foreach($months as $month) {
+           if (($mpos = strpos($value, $month)) !== false) {
+            dpm('516');
+            dpm($value);
+            //Find last comma
+            $cpos = strpos($value, ',', $mpos - 3);
+            if ($cpos !== false && $cpos < $mpos) {
+              if ($value[$cpos-1] == ' ') {
+                $value = substr($value, 0, $cpos-1);
+              } else {
+                $value = substr($value, 0, $cpos);
+              }
+              dpm($value);
+            }
+            break;
+           }
+         }
+      }*/
 
-      $first_entry = &drupal_static(__METHOD__, array());
-
-      // If we reached here, it means we have a first entity, so we can turn off
-      // this flag.
-      $first_entry[$this->biblio->bid] = FALSE;
-      $prefix = ",\n\t";
-
-      if ($key == 'bibtexCitation') {
-        // Place bibtexCitation as the second element of the output, right after
-        // the Biblio type.
-        $output = array_merge(array_slice($output, 0 , 1), array($value), array_slice($output, 1));
-      }
-      elseif ($use_key) {
-        $opening_tag = $this->plugin['options']['opening_tag'];
-        $closing_tag = $this->plugin['options']['closing_tag'];
-        $output[] = $prefix . $key . ' = '. $opening_tag .  $value . $closing_tag;
-      }
-      else {
-        $output[] = $prefix . $value;
+      if ($method == 'formatUrl') {
+        $links .= $value;
+      } elseif ($property == 'biblio_abstract') {
+        $extras = $value;
+      } else {
+        $output .= $value;
       }
     }
 
-    $output[] = "\n}\n";
+    //TODO maybe sort output here
 
-    // Convert any special characters to the latex equivalents.
-    $converter = new PARSEENTRIES();
-    $output = implode("", $output);
-    $output = $converter->searchReplaceText($this->getTranstab(), $output, FALSE);
+    $meta_links = l('cite', '#', array('external' => TRUE, 'attributes' => array('class' => array('pub-cite'))));
+    $meta_links .= l('edit', 'biblio/'.$biblio->bid.'/edit');
+    $meta_links .= l('delete', 'biblio/'.$biblio->bid.'/delete');
 
-    return $output;
+    //dpm($output);
+    //TODO extras contains abstract
+    $output .= '<div class="pub-links">'.$links.'</div>';
+    $output .= '<div class="pub-meta">'.$meta_links.'</div>';
+    $bibtex = '<pre>'.$biblio->getText('bibtex').'</pre>';
+    $output .= '<div class="pub-extras">'.$extras.$bibtex.'</div>';
+    return '<div class="pub">'.$output.'</div>';
   }
 
   /**
@@ -483,6 +592,7 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
    *  The value of the property.
    */
   private function formatSeries(EntityMetadataWrapper $wrapper, $key) {
+    //if ($this->biblio->type
     return in_array($this->biblio->type, array('book_chapter','conference_paper')) ? $wrapper->biblio_tertiary_title->value() : $wrapper->biblio_secondary_title->value();
   }
 
@@ -513,7 +623,59 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
    *  The value of the property.
    */
   private function formatBookTitle(EntityMetadataWrapper $wrapper, $key) {
-    return in_array($this->biblio->type, array('book_chapter','conference_paper')) ? $wrapper->biblio_secondary_title->value() : NULL;
+    $title = in_array($this->biblio->type, array('book_chapter','conference_paper')) ? $wrapper->biblio_secondary_title->value() : NULL;
+    if ($title === null) {
+      return $title;
+    } else {
+      return '<div class="pub-title">'.$title.'</div>';
+    }
+  }
+
+  /**
+   * Rendering conference title property
+   */
+  private function formatTitle(EntityMetadataWrapper $wrapper, $key) {
+    return '<div class="pub-title"><a href="#">'.$wrapper->{$key}->value().'</a></div>';
+  }
+
+  private function formatUrl(EntityMetadataWrapper $wrapper, $key) {
+    $icons = array(
+      'biblio_url' => 'globe',
+      'biblio_pdf' => 'file',
+      'biblio_slides_pdf' => 'blackboard',
+      'biblio_poster_pdf' => 'picture',
+      'biblio_video' => 'film', //or facetime-video
+    );
+    if ($wrapper->{$key}->value() === NULL) {
+      return NULL;
+    }
+    if ($key == 'biblio_url')
+    {
+      return l('<span class="glyphicon glyphicon-'.$icons[$key].'"></span>', $wrapper->{$key}->value(), array('html'=>TRUE));
+    } else {
+      $pdf = $wrapper->{$key}->value();
+      if ($pdf) {
+        $path = file_create_url($pdf['uri']);
+        return l('<span class="glyphicon glyphicon-'.$icons[$key].'"></span>', $path, array('html'=>TRUE));
+       }
+    }
+    return NULL;
+  }
+
+  private function formatMonth(EntityMetadataWrapper $wrapper, $key) {
+    $months = array('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December');
+    $month = '';
+    $idx = $wrapper->{$key}->value();
+    if ($idx > 0 && $idx < 13) {
+      $month = $months[$idx-1];
+    }
+    return ', '.$month.' ';
+  }
+
+  private function formatSupervisor(EntityMetadataWrapper $wrapper, $key) {
+    if ($wrapper->{$key}->value()) {
+      return '<br>Supervised by: '.$wrapper->{$key}->value();
+    }
   }
 
   /**
@@ -682,7 +844,7 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
       }
 
       // Get the contributor's full name, which is all non-empty name parts.
-      $fields = array('firstname', 'initials', 'suffix', 'prefix', 'lastname');
+      $fields = array('firstname', 'lastname');
       $full_name = array();
       foreach ($fields as $field) {
         if (empty($contributor->{$field})) {
@@ -695,10 +857,17 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
       }
 
       // Add the full name to the list of contributors.
-      $names[] = implode(' ', $full_name);
+      $thisname = implode(' ', $full_name);
+      $names[] = l($thisname, 'pubzone2/'.$contributor->{'cid'}.'/'.$thisname);
     }
 
-    return implode(' and ', $names);
+    $output = $names[0];
+    if (count($names) > 1) {
+      $output = implode(', ', array_slice($names, 0, -1));
+      $output = $output.', and '.$names[count($names)-1];
+    }
+
+    return '<div class="pub-author">'.$output.'</div>';
   }
 
   /**
@@ -756,7 +925,10 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
           'method' => 'formatKeywords',
           'import_method' => 'importKeywords',
         ),
-        'month' => array('property' => 'biblio_month'),
+        'month' => array(
+          'property' => 'biblio_month',
+          'method' => 'formatMonth',
+        ),
         'note' => array('property' => 'biblio_notes'),
         'number' => array('property' => 'biblio_number'),
         'organization' => array(
@@ -783,16 +955,28 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
           'property' => 'biblio_secondary_title',
           'import_method' => 'importSecondaryTitle',
         ),
-        'title' => array('property' => 'title'),
+        'title' => array(
+          'property' => 'title',
+          'method' => 'formatTitle',
+        ),
         // Keys used for import.
         'venue_name' => array(
           'property' => 'biblio_tertiary_title',
           'import_method' => 'importTertiaryTitle',
         ),
         // @todo: Is this the Biblio URL?
-        'doi_url' => array('property' => 'biblio_url'),
+        'doi_url' => array('property' => 'biblio_url', 'method' => 'formatUrl'),
+        'pdf' => array('property' => 'biblio_pdf', 'import_method' => 'importPDF', 'method' => 'formatUrl'),
+        'slides_pdf' => array('property' => 'biblio_slides_pdf', 'method' => 'formatUrl'),
+        'poster_pdf' => array('property' => 'biblio_poster_pdf', 'method' => 'formatUrl'),
+        'video' => array('property' => 'biblio_video', 'method' => 'formatUrl'),
         'volume' => array('property' => 'biblio_volume'),
         'year' => array('property' => 'biblio_year'),
+        'supervisor' => array(
+          'property' => 'biblio_supervisor',
+          'import_method' => 'importSupervisor',
+          'method' => 'formatSupervisor',
+        ),
       ),
       'type' => array(
         'article' => 'journal_article',

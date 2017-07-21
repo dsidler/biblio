@@ -38,23 +38,23 @@ class BiblioContributorInlineEntityFormController extends EntityInlineEntityForm
     $biblio_contributor = $entity_form['#entity'];
 
     $properties = array(
-      'prefix',
+      //'prefix',
       'firstname',
-      'initials',
+      //'initials',
       'lastname',
-      'suffix',
+      //'suffix',
     );
 
     foreach ($properties as $property) {
       $biblio_contributor->{$property} = !empty($biblio_contributor->{$property}) ? $biblio_contributor->{$property} : '';
     }
 
-    $entity_form['prefix'] = array(
+    /*$entity_form['prefix'] = array(
       '#type' => 'textfield',
       '#title' => t('Prefix'),
       '#default_value' => $biblio_contributor->prefix,
       '#maxlength' => 128,
-    );
+    );*/
 
     $entity_form['firstname'] = array(
       '#type' => 'textfield',
@@ -63,12 +63,12 @@ class BiblioContributorInlineEntityFormController extends EntityInlineEntityForm
       '#maxlength' => 128,
     );
 
-    $entity_form['initials'] = array(
+    /*$entity_form['initials'] = array(
       '#type' => 'textfield',
       '#title' => t('Initials'),
       '#default_value' => $biblio_contributor->initials,
       '#maxlength' => 10,
-    );
+    );*/
 
     $entity_form['lastname'] = array(
       '#type' => 'textfield',
@@ -77,12 +77,12 @@ class BiblioContributorInlineEntityFormController extends EntityInlineEntityForm
       '#maxlength' => 128,
     );
 
-    $entity_form['suffix'] = array(
+    /*$entity_form['suffix'] = array(
       '#type' => 'textfield',
       '#title' => t('Suffix'),
       '#default_value' => $biblio_contributor->suffix,
       '#maxlength' => 128,
-    );
+    );*/
 
     field_attach_form('biblio_contributor', $biblio_contributor, $entity_form, $form_state);
 

@@ -63,3 +63,8 @@ files[] = tests/EndNote.test
 files[] = tests/ImportPreventDuplicates.test
 files[] = tests/Path.test
 
+; Styles
+stylesheets[all][] = css/pubzone.css
+
+; Scripts
+scripts[] = js/pubzone.js

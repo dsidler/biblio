@@ -10,6 +10,12 @@
 function biblio_install() {
   _biblio_install_add_biblio_roles();
   _biblio_install_add_biblio_categories();
+  if (!$vocabulary = taxonomy_vocabulary_machine_name_load('biblio_keywords')) {
+    $vocabulary = new stdClass();
+    $vocabulary->name = 'Biblio Keywords';
+    $vocabulary->machine_name = 'biblio_keywords';
+    taxonomy_vocabulary_save($vocabulary);
+  }
 }
 
 /**
@@ -18,12 +24,14 @@ function biblio_install() {
 function biblio_uninstall() {
   require_once('biblio.biblio.inc');
 
+  $biblio_fields = biblio_biblio_fields_info();
   $biblio_fields = array_keys($biblio_fields);
 
   foreach (field_info_instances() as $bundles) {
     foreach ($bundles as $instances) {
 	   foreach ($instances as $instance) {
 		  if (in_array($instance['field_name'], $biblio_fields)) {
+      dpm($instance['field_name']);
 			 //TODO gives sometimes an error
 		    field_delete_instance($instance);
 			 field_purge_batch(1);
@@ -65,7 +73,9 @@ function biblio_uninstall() {
   if ($vocabulary = taxonomy_vocabulary_machine_name_load('biblio_categories')) {
     taxonomy_vocabulary_delete($vocabulary->vid);
   }
-
+  if ($vocabulary = taxonomy_vocabulary_machine_name_load('biblio_keywords')) {
+    taxonomy_vocabulary_delete($vocabulary->vid);
+  }
 }
 
 
@@ -92,10 +102,11 @@ function _biblio_install_add_biblio_roles() {
   $term->vid = $vocabulary->vid;
   taxonomy_term_save($term);
 
-  $term = new stdClass();
+  //disable Editor
+  /*$term = new stdClass();
   $term->name = "Editor";
   $term->vid = $vocabulary->vid;
-  taxonomy_term_save($term);
+  taxonomy_term_save($term);*/
 }
 
 /**

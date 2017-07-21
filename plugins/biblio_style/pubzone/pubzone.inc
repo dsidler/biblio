@@ -10,10 +10,10 @@ $plugin = array(
     'opening_tag' => '{',
     'closing_tag' => '}',
   ),
-  'export' => array(
+  /*'export' => array(
     'bibtex' => array(
       'name' => t('Pubzone'),
       'file extension' => 'bib',
     ),
-  ),
+  ),*/
 );
