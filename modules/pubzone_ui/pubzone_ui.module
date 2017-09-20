@@ -1,0 +1,207 @@
+<?php
+/**
+ * @file
+ * Main functionality file for the pubzone UI module.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function pubzone_ui_menu() {
+  $items = array();
+
+  $items['pubzone3'] = array(
+    'title' => 'Publications',
+    'page callback' => 'pubzone_ui_mainpage',
+    'access callback' => TRUE,
+    //'access' => TRUE,
+    //'access arguments' => array('view biblio'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['pubzone3/author/%/%'] = array(
+    'title' => 'Publications',
+    'page callback' => 'pubzone_ui_mainpage',
+    'page arguments' => array(2,3),
+    'access callback' => TRUE,
+    //'access' => TRUE,
+    //'access arguments' => array('view biblio'),
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+function pubzone_header_form($form_state) {
+  $form = array();
+
+  //Get biblio categories
+  $voc = taxonomy_vocabulary_machine_name_load('biblio_categories');
+  $terms = entity_load('taxonomy_term', FALSE, array('vid' => $voc->vid));
+  $categories = array('all' => '- Any -');
+  foreach ($terms as $term) {
+    $categories[$term->name] = $term->name; //maybe use $term->tid as key
+  }
+
+  //Get types
+  $biblio_types = biblio_get_types_info();
+  $types = array('all' => '- Any -');
+  foreach($biblio_types as $btype) {
+    $types[$btype['name']] = $btype['name'];
+  }
+
+  $form['search'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Search'),
+    '#size' => 30,
+    '#maxlength' => 128,
+
+  );
+
+  $form['year'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Year'),
+    '#size' => 30,
+    '#maxlength' => 128,
+  );
+
+  $form['categories'] = array(
+    //'#type' => 'checkboxes',
+    '#type' => 'select',
+    '#title' => t('Category'),
+    '#options' => $categories,
+    '#default_value' => $categories['all'],
+  );
+
+  $form['types'] = array(
+    //'#type' => 'checkboxes',
+    '#type' => 'select',
+    '#title' => t('Type'),
+    '#options' => $types,
+    '#default_value' => $types['all'],
+  );
+
+
+
+  return $form;
+}
+
+
+/*
+ * Main page
+ */
+function pubzone_ui_mainpage($aid=null, $author=null) {
+  $biblio_style = 'pubzone';
+  if ($author) {
+    drupal_set_title('Publications by '.$author);
+    //TODO add return button
+  }
+
+  $form = drupal_get_form('pubzone_header_form');
+  $content = '';
+  $content .='<section id="pubzone-header">';
+  $content .= drupal_render($form);
+  $content .='</section>';
+  
+  //Get biblios.
+  $content .= '<section id="pubzone-biblios">';
+  if ($aid) {
+    $biblios = pubzone_ui_get_author_biblios($aid);
+  } else {
+    $biblios = pubzone_ui_get_biblios();
+  }
+  foreach ($biblios as $bid) {
+    $biblio = biblio_load($bid);
+    $content .= $biblio->getText($biblio_style);
+  }
+  $content .= '</section>';
+
+  return '<div id="filter"></div>' . $content;
+}
+
+function pubzone_ui_get_biblios() {
+  $query = new EntityFieldQuery;
+  $query->entityCondition('entity_type', 'biblio');
+  $query->fieldOrderBy('biblio_year', 'value', 'DESC');
+  $query->fieldOrderBy('biblio_month', 'value', 'DESC');
+
+  $results = $query->execute();
+  if (isset($results['biblio'])) {
+    return array_keys($results['biblio']);
+  }
+
+  return array();
+}
+
+function pubzone_ui_get_author_biblios($aid) {
+  $inner = new EntityFieldQuery;
+  $inner->entityCondition('entity_type', 'field_collection_item');
+  $inner->fieldCondition('biblio_contributor', 'target_id', $aid);
+
+  $inner_res = $inner->execute();
+  if (isset($inner_res['field_collection_item'])) {
+    $keys = array_keys($inner_res['field_collection_item']);
+    $query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', 'biblio');
+    $query->fieldCondition('contributor_field_collection', 'value', $keys);
+    $query->fieldOrderBy('biblio_year', 'value', 'DESC');
+    $query->fieldOrderBy('biblio_month', 'value', 'DESC');
+
+    $results = $query->execute();
+    if (isset($results['biblio'])) {
+      return array_keys($results['biblio']);
+    } 
+  }
+  return array();
+}
+
+/*function pubzone_ui_authorpage($aid, $author) {
+  $biblio_style = 'pubzone';
+  $content = '';
+  if ($aid) {
+    $content .= '<p>Author ID: '.$aid.'</p>';
+  }
+  if ($author) {
+    $content .= '<p>Name: '.$author.'</p>';
+  }
+  $content .= 'done.';
+
+  $inner = new EntityFieldQuery;
+  $inner->entityCondition('entity_type', 'field_collection_item');
+  $inner->fieldCondition('biblio_contributor', 'target_id', $aid);
+  //$query->propertyCondition('field_name', 'biblio_contributor');
+  //$query->entityCondition('entity_id', $aid);
+  //$query->entityCondition('bundle', 'contributor_field_collection');
+  //$query->fieldCondition('contributor_field_collection', 'item_id', 71827);
+  //$query->fieldCondition('id', 'value', 1178);
+  //$query->fieldOrderBy('biblio_year', 'value', 'DESC');
+  //$query->fieldOrderBy('biblio_month', 'value', 'DESC');
+  //$query->fieldCondition('biblio_contributor', 'value', 1255);
+  //$query->range(0,10);
+
+
+  $inner_res = $inner->execute();
+  //dpm($results);
+  if (isset($inner_res['field_collection_item'])) {
+    $keys = array_keys($inner_res['field_collection_item']);
+    $query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', 'biblio');
+    $query->fieldCondition('contributor_field_collection', 'value', $keys);
+    $query->fieldOrderBy('biblio_year', 'value', 'DESC');
+    $query->fieldOrderBy('biblio_month', 'value', 'DESC');
+
+    $results = $query->execute();
+    if (isset($results['biblio'])) {
+      foreach ($results['biblio'] as $bid => $item) {
+        $biblio = biblio_load($bid);
+        $content .= $biblio->getText($biblio_style);
+      }
+    }
+  }
+
+  //dpm(entity_get_info());
+
+
+  return $content;
+}*/
+

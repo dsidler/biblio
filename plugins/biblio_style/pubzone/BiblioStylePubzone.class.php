@@ -23,12 +23,12 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
     $query = db_select('publication', 'p');
     $query->join('group_publication', 'gp', 'p.publication_id=gp.publication_id');
     $query->join('venue', 'v', 'p.venue_id=v.venue_id');
-    $query->join('attachment', 'a', 'p.pdf_file=a.attachment_id');
+    //$query->join('attachment', 'a', 'p.pdf_file=a.attachment_id');
     $query->fields('p', array('title', 'year', 'month', 'publication_id', 'type', 'doi_url', 'abstract', 'supervisor', 'venueName'));
     //$query->fields('v', array('name'));
     $query->addField('v', 'name', 'booktitle'); //TODO maybe map to booktitle or secondary title
     //$query->fields('a', array('contentType', 'description', 'filename'));
-    $query->addField('a', 'filename', 'pdf');
+    //$query->addField('a', 'filename', 'pdf');
     $query->condition('gp.group_id', 1);
     $query->condition('p.is_deleted', 0);
     $query->condition('p.isActive', 1);
@@ -98,6 +98,10 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
       $sections = $this->getPublicationSections($row->publication_id);
       $this->importSections($wrapper, $sections);
 
+      //Add attachment
+      $attachments = $this->getAttachments($row->publication_id);
+      $this->importPDF($wrapper, $attachments);
+
       //Add keywords
       //TODO this is broken
       $keywords = $this->getPublicationKeywords($row->publication_id);
@@ -165,6 +169,27 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
     }
 
     return $sections;
+  }
+
+  public function getAttachments($publication_id) {
+    db_set_active('pubzonedb');
+
+    $query = db_select('attachment', 'a');
+    $query->join('publication', 'p', 'p.pdf_file=a.attachment_id');
+    //$query->addField('a', 'filename', 'pdf');
+    $query->fields('a', array('filename'));
+    $query->condition('p.publication_id', $publication_id);
+
+    $result = $query->execute();
+    db_set_active('default');
+
+    $attachments = array();
+    foreach($result as $row) {
+      dpm($row);
+      $attachments[] = $row->filename;
+    }
+
+    return $attachments;
   }
 
   public function getPublicationKeywords($publication_id) {
@@ -435,12 +460,16 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
     $this->importGeneric($wrapper, $key, $entry);
   }
 
-  public function importPDF(EntityMetadataWrapper $wrapper, $key, $entry) {
-    if (empty($entry[$key])) {
+  //public function importPDF(EntityMetadataWrapper $wrapper, $key, $entry) {
+  public function importPDF(EntityMetadataWrapper $wrapper, $attachments) {
+    //Check if there is an attachment
+    if (empty($attachments)) {
       return;
     }
+
     //Check if file exists
-    $filename = $entry[$key];
+    dpm($attachments);
+    $filename = $attachments[0];//$entry[$key];
     //replace whitespace
     $filename = str_replace(' ', '_', $filename);
     $base = variable_get('file_public_path', conf_path().'/files');
@@ -489,9 +518,10 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
 
     $output = ''; //array();
     $links = '';
-    $extras = '';
 
     $map = $this->getMapping();
+    $extras = $wrapper->{'title'}->value();
+//    $extras .= $this->{$map['field']['secondary_title']['method']}($wrapper, $map['field']['secondary_title']['property']);
 
     $show_fields = array('title',
                         'author',
@@ -562,7 +592,13 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
     $output .= '<div class="pub-meta">'.$meta_links.'</div>';
     $bibtex = '<pre>'.$biblio->getText('bibtex').'</pre>';
     $output .= '<div class="pub-extras">'.$extras.$bibtex.'</div>';
-    return '<div class="pub">'.$output.'</div>';
+
+    $cat = 'data-category="';
+    foreach ($wrapper->{'biblio_category'}->value() as $category) {
+        $cat .= $category->name . ',';
+    }
+
+    return '<div class="pub" data-type="' . $type_info['name'] . '" ' . $cat . '">'.$output.'</div>';
   }
 
   /**
@@ -858,7 +894,7 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
 
       // Add the full name to the list of contributors.
       $thisname = implode(' ', $full_name);
-      $names[] = l($thisname, 'pubzone2/'.$contributor->{'cid'}.'/'.$thisname);
+      $names[] = l($thisname, 'pubzone3/author/'.$contributor->{'cid'}.'/'.$thisname);
     }
 
     $output = $names[0];
@@ -966,7 +1002,7 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
         ),
         // @todo: Is this the Biblio URL?
         'doi_url' => array('property' => 'biblio_url', 'method' => 'formatUrl'),
-        'pdf' => array('property' => 'biblio_pdf', 'import_method' => 'importPDF', 'method' => 'formatUrl'),
+        'pdf' => array('property' => 'biblio_pdf', /*'import_method' => 'importPDF',*/ 'method' => 'formatUrl'),
         'slides_pdf' => array('property' => 'biblio_slides_pdf', 'method' => 'formatUrl'),
         'poster_pdf' => array('property' => 'biblio_poster_pdf', 'method' => 'formatUrl'),
         'video' => array('property' => 'biblio_video', 'method' => 'formatUrl'),
