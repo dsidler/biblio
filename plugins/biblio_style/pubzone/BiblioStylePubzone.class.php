@@ -598,7 +598,9 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
         $cat .= $category->name . ',';
     }
 
-    return '<div class="pub" data-type="' . $type_info['name'] . '" ' . $cat . '">'.$output.'</div>';
+    $year = $biblio->biblio_year['und'][0]['value'];
+
+    return '<div class="pub" data-type="' . $type_info['name'] . '" ' . $cat . '" data-year="' . $year . '">'.$output.'</div>';
   }
 
   /**

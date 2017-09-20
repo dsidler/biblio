@@ -81,8 +81,6 @@ function pubzone_header_form($form_state) {
     '#default_value' => $types['all'],
   );
 
-
-
   return $form;
 }
 
@@ -97,11 +95,13 @@ function pubzone_ui_mainpage($aid=null, $author=null) {
     //TODO add return button
   }
 
-  $form = drupal_get_form('pubzone_header_form');
   $content = '';
+
+  /* this is done by the JS now
+  $form = drupal_get_form('pubzone_header_form');
   $content .='<section id="pubzone-header">';
   $content .= drupal_render($form);
-  $content .='</section>';
+  $content .='</section>';*/
   
   //Get biblios.
   $content .= '<section id="pubzone-biblios">';
@@ -110,9 +110,19 @@ function pubzone_ui_mainpage($aid=null, $author=null) {
   } else {
     $biblios = pubzone_ui_get_biblios();
   }
+
+  $previous_year = 0;
+
   foreach ($biblios as $bid) {
     $biblio = biblio_load($bid);
+    $current_year = $biblio->biblio_year['und'][0]['value'];
+
+    if ($current_year != $previous_year) {
+      $content .= '<h3>' . $current_year . '</h3>';
+    }
+    
     $content .= $biblio->getText($biblio_style);
+    $previous_year = $current_year;
   }
   $content .= '</section>';
 
@@ -146,6 +156,7 @@ function pubzone_ui_get_author_biblios($aid) {
     $query->fieldCondition('contributor_field_collection', 'value', $keys);
     $query->fieldOrderBy('biblio_year', 'value', 'DESC');
     $query->fieldOrderBy('biblio_month', 'value', 'DESC');
+    // TODO order by ID as well to ensure determinism?
 
     $results = $query->execute();
     if (isset($results['biblio'])) {
