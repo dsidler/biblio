@@ -10,7 +10,7 @@
 function pubzone_ui_menu() {
   $items = array();
 
-  $items['pubzone3'] = array(
+  $items['pubzone'] = array(
     'title' => 'Publications',
     'page callback' => 'pubzone_ui_mainpage',
     'access callback' => TRUE,
@@ -19,7 +19,7 @@ function pubzone_ui_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  $items['pubzone3/author/%/%'] = array(
+  $items['pubzone/author/%/%'] = array(
     'title' => 'Publications',
     'page callback' => 'pubzone_ui_mainpage',
     'page arguments' => array(2,3),
@@ -134,6 +134,8 @@ function pubzone_ui_get_biblios() {
   $query->entityCondition('entity_type', 'biblio');
   $query->fieldOrderBy('biblio_year', 'value', 'DESC');
   $query->fieldOrderBy('biblio_month', 'value', 'DESC');
+  // page doesnt load without caching unless we do this
+  //$query->range(0, 100);
 
   $results = $query->execute();
   if (isset($results['biblio'])) {

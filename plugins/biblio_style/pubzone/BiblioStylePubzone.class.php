@@ -185,7 +185,6 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
 
     $attachments = array();
     foreach($result as $row) {
-      dpm($row);
       $attachments[] = $row->filename;
     }
 
@@ -290,6 +289,42 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
 
     $this->importGeneric($wrapper, $key, $entry);
   }
+  
+  /**
+   * Import a month.
+   *
+   * @param EntityMetadataWrapper $wrapper
+   *   The wrapped Biblio object.
+   * @param $key
+   *   The key to import.
+   * @param $entry
+   *   The data to import from.
+   */
+  public function importMonth(EntityMetadataWrapper $wrapper, $key, $entry) {
+    if (empty($entry[$key])) {
+      dpm("No month");
+      //Assign default value January
+      $entry[$key] = '1';
+      //return;
+    }
+    else {
+      dpm($entry[$key]);
+    }
+
+    $this->importGeneric($wrapper, $key, $entry);
+
+
+    /*$map = $this->getMapping();
+    $map = $map['field'];
+    $property = $map[$key]['property'];
+
+    // Some BibTex might come we double curly brackets, so strip them out from
+    // the beginning and end of the value.
+    $value = trim($entry[$key], '{}');
+
+    $wrapper->{$property}->set($value);*/
+
+  }
 
   /**
    * Import publisher.
@@ -355,8 +390,6 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
     $months = array('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December');
     foreach($months as $month) {
       if (($mpos = strpos($value, $month)) !== false) {
-        dpm('333');
-        dpm($value);
         //Find last comma
         $cpos = strpos($value, ',', $mpos - 3);
         if ($cpos !== false && $cpos < $mpos) {
@@ -365,11 +398,12 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
           } else {
             $value = substr($value, 0, $cpos);
           }
-          dpm($value);
         }
         break;
       }
     }
+
+    //TODO import month here too!!
 
     $entry[$key] = $value;
     $this->importGeneric($wrapper, $key, $entry);
@@ -386,7 +420,6 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
    *   The data to import from.
    */
   public function importTertiaryTitle(EntityMetadataWrapper $wrapper, $key, $entry) {
-    dpm($entry);
     if (empty($entry['series']) || empty($entry['booktitle'])) {
       return;
     }
@@ -468,7 +501,6 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
     }
 
     //Check if file exists
-    dpm($attachments);
     $filename = $attachments[0];//$entry[$key];
     //replace whitespace
     $filename = str_replace(' ', '_', $filename);
@@ -554,8 +586,6 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
         $months = array('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December');
          foreach($months as $month) {
            if (($mpos = strpos($value, $month)) !== false) {
-            dpm('516');
-            dpm($value);
             //Find last comma
             $cpos = strpos($value, ',', $mpos - 3);
             if ($cpos !== false && $cpos < $mpos) {
@@ -564,7 +594,6 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
               } else {
                 $value = substr($value, 0, $cpos);
               }
-              dpm($value);
             }
             break;
            }
@@ -966,6 +995,7 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
         'month' => array(
           'property' => 'biblio_month',
           'method' => 'formatMonth',
+          'import_method' => 'importMonth',
         ),
         'note' => array('property' => 'biblio_notes'),
         'number' => array('property' => 'biblio_number'),

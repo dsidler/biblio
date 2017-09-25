@@ -263,8 +263,30 @@ class BiblioStyleBibtex extends BiblioStyleBase implements BiblioStyleImportInte
     }
     $type_info = biblio_get_types_info($type);
 
+    $type_mapping = array(
+        'Book' => 'book',
+        'Book Chapter' => 'inbook',
+        'Conference Paper' => 'inproceedings',
+        'Journal Article' => 'article',
+        'Demo' => 'misc',
+        'Master Thesis' => 'mastersthesis',
+        'PhD Thesis' => 'phdthesis',
+        'Technical Report' => 'techreport',
+        'Workshop Paper' => 'misc');
+
+    $sec_title_mapping = array(
+        'Book' => 'note', // not sure what this should be
+        'Book Chapter' => 'booktitle',
+        'Conference Paper' => 'booktitle',
+        'Journal Article' => 'journal',
+        'Demo' => 'note', // not sure what this should be
+        'Master Thesis' => 'school',
+        'PhD Thesis' => 'school',
+        'Technical Report' => 'note', // tech report doesn't seem to have a secondary_title
+        'Workshop Paper' => 'note'); // also doesn't seem to have it
+
     $output = array();
-    $output[] = '@' . $type_info['name'] . '{';
+    $output[] = '@' . $type_mapping[$type_info['name']] . '{';
 
     $map = $this->getMapping();
     foreach ($map['field'] as $key => $info) {
@@ -280,6 +302,10 @@ class BiblioStyleBibtex extends BiblioStyleBase implements BiblioStyleImportInte
 
       if (!$value = $this->{$method}($wrapper, $property)) {
         continue;
+      }
+
+      if ($key == 'secondary_title') {
+        $key = $sec_title_mapping[$type_info['name']];
       }
 
       $first_entry = &drupal_static(__METHOD__, array());
