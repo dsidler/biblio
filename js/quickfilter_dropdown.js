@@ -102,7 +102,7 @@ Quickfilter.prototype._refresh = function(isInit) {
     // Update filter UIs
     for (var i = 0; i < this._filters.length; i++)
         this._filters[i].refresh(isInit, matched, missed);
-
+    
     // Update saved state
     this._saveState();
 
@@ -180,12 +180,16 @@ Quickfilter._CategoricalUI = function(facet, qf, savedState) {
 
     // Create filter UI
     var uiDiv = jQuery('<div>')
-              .addClass('form-item form-item-categories form-type-select form-group');
-    var nameElt = jQuery('<label>')
-              .addClass('control-label')
-              .text(facet.name)
-              .appendTo(uiDiv);
+                .addClass('form-item form-item-categories form-type-select form-group');
+    var nameElt = jQuery('<label>').addClass('control-label').text(facet.name).
+        appendTo(uiDiv);
     this._nameElt = nameElt;
+
+    var dropdownElt = jQuery('<select>')
+                        .addClass('form-control form-select')
+                        .attr('id', 'dropdown-' + facet.name)
+                        .attr('name', facet.name)
+                        .appendTo(uiDiv);
 
     // Collect the value set of this filter
     var valSet = {};
@@ -196,15 +200,17 @@ Quickfilter._CategoricalUI = function(facet, qf, savedState) {
     for (var val in valSet)
         if (Object.prototype.hasOwnProperty.call(valSet, val) && val != '')
             vals.push(val);
+    // Need the "any" value as well
+    vals.push("- Any -");
     vals.sort();
 
-    // Create rows
+    // Create entries
     var values = [];
     for (var i = 0; i < vals.length; i++) {
-        var rowElt = jQuery('<div>').text(vals[i]).addClass('quickfilter-value').
-            attr('tabindex', '0').appendTo(uiDiv);
-        var checkElt = jQuery('<span>&#x2713;</span>').
-            addClass('quickfilter-check').prependTo(rowElt);
+        var optionElt = jQuery('<option>')
+            .text(vals[i])
+            .attr('value', vals[i])
+            .appendTo(dropdownElt);
 
         // Get this value's selected state from the saved state or the
         // initial selections
@@ -218,57 +224,20 @@ Quickfilter._CategoricalUI = function(facet, qf, savedState) {
         // Create value
         var value = {'value': vals[i],
                      'selected': selected,
-                     'viable': true,
-                     'rowElt': rowElt,
-                     'checkElt': checkElt};
+                     'optionElt': optionElt};
         values.push(value);
-
-        // Handle clicks on this row
-        (function(value) {
-            rowElt.click(function() {
-                if (!value.viable)
-                    return;
-                // Toggle this value selection
-                value.selected = !value.selected;
-                qf._refresh();
-            });
-        })(value);
     }
     this._values = values;
-    uiDiv.on('keyup', function(ev) {
-        if (ev.which === 13)
-            jQuery(ev.target).click();
+
+    // Handle value changes in the dropdown box
+    dropdownElt.change(function() {
+        for (var i = 0; i < values.length; i++) {
+            values[i].selected = values[i].value == dropdownElt[0].value;
+        }
+        qf._refresh(false);
     });
 
     qf._filtersDiv.append(uiDiv);
-
-    // Show newly viable values and hide newly non-viable values on
-    // mouseleave from the filter UI.  This keeps the UI stable while
-    // the user is in it, but also cleans it up when possible.
-    qf._filtersDiv.mouseleave(function() {
-        self._tidyUI();
-    });
-};
-
-/**
- * "Tidy" this filter's UI by hiding non-viable values.  To keep the
- * UI stable, this should only be called when the mouse is *not* over
- * _qf._filtersDiv.
- */
-Quickfilter._CategoricalUI.prototype._tidyUI = function() {
-    var anyViable = false;
-    for (var j = 0; j < this._values.length; j++) {
-        var value = this._values[j];
-        anyViable = anyViable || value.viable;
-        if (value.viable)
-            value.rowElt.slideDown('fast');
-        else
-            value.rowElt.slideUp('fast');
-    }
-    if (anyViable)
-        this._nameElt.slideDown('fast');
-    else
-        this._nameElt.slideUp('fast');
 };
 
 /**
@@ -277,7 +246,7 @@ Quickfilter._CategoricalUI.prototype._tidyUI = function() {
  */
 Quickfilter._CategoricalUI.prototype._isPassAll = function() {
     for (var i = 0; i < this._values.length; i++)
-        if (this._values[i].selected)
+        if (this._values[i].selected && this._values[i].value != '- Any -')
             return false;
     return true;
 }
@@ -289,7 +258,7 @@ Quickfilter._CategoricalUI.prototype._isPassAll = function() {
 Quickfilter._CategoricalUI.prototype.makePredicate = function() {
     var self = this;
 
-    // If no values are selected, then this filter allows everything.
+    // If no values (or any) are selected, then this filter allows everything.
     if (this._isPassAll())
         return function() { return true; };
 
@@ -321,7 +290,7 @@ Quickfilter._CategoricalUI.prototype.makePredicate = function() {
 Quickfilter._CategoricalUI.prototype.refresh = function(isInit, matched, missed) {
     // Update check marks.  If this filter is disabled, shade them in
     // light gray, since it's like they're all selected.
-    var notSelOpacity = this._isPassAll() ? '0.25' : '0';
+    /*var notSelOpacity = this._isPassAll() ? '0.25' : '0';
     for (var i = 0; i < this._values.length; i++) {
         var row = this._values[i];
         row.checkElt.css('opacity', row.selected ? '1' : notSelOpacity);
@@ -350,12 +319,7 @@ Quickfilter._CategoricalUI.prototype.refresh = function(isInit, matched, missed)
             else
                 value.rowElt.addClass('quickfilter-value-nonviable');
         }
-    }
-
-    // If the mouse isn't over the Quickfilter, tidy immediately
-    // rather than waiting for the mouse to leave
-    if (!this._qf._filtersDiv.is(':hover'))
-        this._tidyUI();
+    }*/
 };
 
 /**
@@ -402,14 +366,14 @@ Quickfilter._FreeTextUI = function(facet, qf, savedState) {
                 .addClass('form-item form-item-search form-type-textfield form-group');
     var label = jQuery('<label>')
                 .addClass('control-label')
-                .text(facet.name)
+                .text("Search")
                 .appendTo(uiDiv);
-
+    
     var inputDiv = jQuery('<input type="search">')
-                //.attr('placeholder', facet.name)
+                .attr('placeholder', facet.name)
                 .addClass('form-control form-text')
                 .attr('size', '30')
-                .attr('max-length', '128')
+                .attr('maxlength', '128')
                 .appendTo(uiDiv);
     if (facet.options.autofocus)
         inputDiv.attr('autofocus', 'autofocus');

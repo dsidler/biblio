@@ -56,12 +56,18 @@ jQuery(document).ready(function($) {
         return {'': item.textContent};
     }
 
+    function getYear(item) {
+        return {'': item.getAttribute('data-year')};
+    }
+
     new Quickfilter(
         $('.pub'), $('#filter'),
-        [new Quickfilter.FreeText('', getText,
+        [new Quickfilter.FreeText('Search', getText,
                                   {initial: initialSearch,
                                    autofocus: false}),
-         new Quickfilter.Categorical('Year', 'data-year'),
+         new Quickfilter.FreeText('Year', getYear,
+                                  {initial: initialSearch,
+                                   autofocus: false}),
          new Quickfilter.Categorical('Category', getCategory),
          new Quickfilter.Categorical('Type', 'data-type')],
         onFilterChange);
