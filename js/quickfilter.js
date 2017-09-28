@@ -203,8 +203,11 @@ Quickfilter._CategoricalUI = function(facet, qf, savedState) {
     for (var i = 0; i < vals.length; i++) {
         var rowElt = jQuery('<div>').text(vals[i]).addClass('quickfilter-value').
             attr('tabindex', '0').appendTo(uiDiv);
-        var checkElt = jQuery('<span>&#x2713;</span>').
-            addClass('quickfilter-check').prependTo(rowElt);
+        //var checkElt = jQuery('<span>&#x2713;</span>').
+        var checkElt = jQuery('<i> </i>')
+            .addClass('quickfilter-check fa fa-circle-o')
+            .attr('aria-hidden', 'true')
+            .prependTo(rowElt);
 
         // Get this value's selected state from the saved state or the
         // initial selections
@@ -230,6 +233,7 @@ Quickfilter._CategoricalUI = function(facet, qf, savedState) {
                     return;
                 // Toggle this value selection
                 value.selected = !value.selected;
+
                 qf._refresh();
             });
         })(value);
@@ -321,10 +325,19 @@ Quickfilter._CategoricalUI.prototype.makePredicate = function() {
 Quickfilter._CategoricalUI.prototype.refresh = function(isInit, matched, missed) {
     // Update check marks.  If this filter is disabled, shade them in
     // light gray, since it's like they're all selected.
-    var notSelOpacity = this._isPassAll() ? '0.25' : '0';
+
+    //var notSelOpacity = this._isPassAll() ? '0.25' : '0';
+    var notSelOpacity = 0.25;
     for (var i = 0; i < this._values.length; i++) {
         var row = this._values[i];
         row.checkElt.css('opacity', row.selected ? '1' : notSelOpacity);
+        if (row.selected) {
+            row.checkElt.removeClass('fa-circle-o');
+            row.checkElt.addClass('fa-check-circle-o');
+        } else {
+            row.checkElt.removeClass('fa-check-circle-o');
+            row.checkElt.addClass('fa-circle-o');
+        }
     }
 
     // Compute viable value set
