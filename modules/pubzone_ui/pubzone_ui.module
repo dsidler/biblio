@@ -104,8 +104,9 @@ function pubzone_ui_mainpage($aid=null, $author=null) {
   $content .='</section>';*/
   
   //Get biblios.
-  $content .= '<section id="pubzone-biblios">';
+  $content .= '<section id="pubzone-biblios"><div><a href="#" onClick="exportBibtex()">Export bibtex</a></div>';
   if ($aid) {
+    $content .= '<div><a href="/pubzone">Back to main page</a></div>';
     $biblios = pubzone_ui_get_author_biblios($aid);
   } else {
     $biblios = pubzone_ui_get_biblios();
@@ -126,9 +127,9 @@ function pubzone_ui_mainpage($aid=null, $author=null) {
   }
   $content .= '</section>';
   
-  $no_results = '<div id="no-matches">No publications found.</div>';
+  $no_results = '<div id="no-matches" style="display: none;">No publications found.</div>';
 
-  return '<div id="filter"></div>' . $no_results . $content;
+  return $no_results . $content;
 }
 
 function pubzone_ui_get_biblios() {

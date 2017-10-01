@@ -72,3 +72,13 @@ jQuery(document).ready(function($) {
          new Quickfilter.Categorical('Type', 'data-type')],
         onFilterChange);
 });
+
+function exportBibtex() {
+    var outputElts = jQuery('.pub:visible').find('pre');
+    var text = [];
+    for (var i = 0; i < outputElts.length; i++) {
+        text.push(outputElts[i].innerText);
+    }
+    var blob = new Blob(text, {type: "text/plain;charset=utf-8"});
+    saveAs(blob, "references.bib");
+}

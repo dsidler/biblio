@@ -925,7 +925,7 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
 
       // Add the full name to the list of contributors.
       $thisname = implode(' ', $full_name);
-      $names[] = l($thisname, 'pubzone3/author/'.$contributor->{'cid'}.'/'.$thisname);
+      $names[] = l($thisname, 'pubzone/author/'.$contributor->{'cid'}.'/'.$thisname);
     }
 
     $output = $names[0];

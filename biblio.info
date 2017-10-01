@@ -70,3 +70,4 @@ stylesheets[all][] = css/pubzone.css
 scripts[] = js/pubzone.js
 scripts[] = js/pubs.js
 scripts[] = js/quickfilter.js
+scripts[] = js/FileSaver.min.js
