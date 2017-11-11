@@ -595,6 +595,7 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
     $biblio = clone $this->biblio;
     $wrapper = entity_metadata_wrapper('biblio', $biblio);
     $type = $this->biblio->type;
+    dpm($biblio);
 
     //TODO what is this???
     if ($type == 'thesis' && !empty($wrapper->biblio_type_of_work) && strpos($wrapper->biblio_type_of_work->value(), 'masters') === TRUE) {
@@ -611,8 +612,6 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
     $extras = '';
 
     $map = $this->getMapping();
-    //$extras = $wrapper->{'title'}->value();
-//    $extras .= $this->{$map['field']['secondary_title']['method']}($wrapper, $map['field']['secondary_title']['property']);
 
     $show_fields = array('title',
                         'author',
@@ -639,7 +638,6 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
       if(!$value = $this->{$method}($wrapper, $property)) {
         continue;
       }
-
       if ($method == 'formatUrl') {
         $links .= $value;
       } elseif ($property == 'biblio_abstract') {
@@ -1077,7 +1075,7 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
         ),
         // @todo: Is this the Biblio URL?
         'doi_url' => array('property' => 'biblio_url', 'method' => 'formatUrl'),
-        'pdf' => array('property' => 'biblio_pdf', /*'import_method' => 'importPDF',*/ 'method' => 'formatUrl'),
+        'pdf' => array('property' => 'biblio_pdf', 'method' => 'formatUrl'),
         'slides_pdf' => array('property' => 'biblio_slides_pdf', 'method' => 'formatUrl'),
         'poster_pdf' => array('property' => 'biblio_poster_pdf', 'method' => 'formatUrl'),
         'video' => array('property' => 'biblio_video', 'method' => 'formatUrl'),
