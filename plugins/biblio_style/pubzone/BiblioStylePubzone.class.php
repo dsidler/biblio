@@ -24,8 +24,9 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
     $query->join('group_publication', 'gp', 'p.publication_id=gp.publication_id');
     $query->join('venue', 'v', 'p.venue_id=v.venue_id');
     //$query->join('attachment', 'a', 'p.pdf_file=a.attachment_id');
-    $query->fields('p', array('title', 'year', 'month', 'publication_id', 'type', 'doi_url', 'abstract', 'supervisor', 'venueName'));
+    $query->fields('p', array('title', 'year', 'month', 'publication_id', 'type', 'doi_url', 'abstract', 'supervisor'));
     //$query->fields('v', array('name'));
+    $query->addField('p', 'venueName', 'venue_name');
     $query->addField('v', 'name', 'booktitle'); //TODO maybe map to booktitle or secondary title
     //$query->fields('a', array('contentType', 'description', 'filename'));
     //$query->addField('a', 'filename', 'pdf');
@@ -52,11 +53,18 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
         continue;
       }
       if ($row->type == 'phd_thesis' || $row->type == 'master_thesis') {
-        if ($row->venueName) {
-          $row->booktitle = $row->venueName;
+        if ($row->venue_name) {
+          $row->booktitle = $row->venue_name;
         }
       }
-
+      //Check if venue name is actually book title
+      else {
+        //Check if booktitle is 'ETH Zurich'
+        if ($row->venue_name && substr($row->booktitle, 0, 3) === "ETH") {
+          $row->booktitle = $row->venue_name;
+          $row->venue_name = NULL;
+        }
+      }
 
       $entry = (array) $row;
       //Remove HTML special encoding
@@ -106,9 +114,7 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
       //TODO this is broken
       $keywords = $this->getPublicationKeywords($row->publication_id);
       if (!empty($keywords)) {
-        //dpm($keywords);
         $this->importKeywordsList($wrapper, $keywords);
-        //dpm("HERE");
       }
 
       //Add to list
@@ -302,13 +308,8 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
    */
   public function importMonth(EntityMetadataWrapper $wrapper, $key, $entry) {
     if (empty($entry[$key])) {
-      dpm("No month");
       //Assign default value January
       $entry[$key] = '1';
-      //return;
-    }
-    else {
-      dpm($entry[$key]);
     }
 
     $this->importGeneric($wrapper, $key, $entry);
@@ -388,10 +389,28 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
     }
 
     $months = array('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December');
-    foreach($months as $month) {
+    $monthIdx = 0;
+    $venue = '';
+    foreach($months as $idx => $month) {
       if (($mpos = strpos($value, $month)) !== false) {
-        //Find last comma
-        $cpos = strpos($value, ',', $mpos - 3);
+        //Check if tail contains venue name, find comma after month
+        $vpos = strpos(substr($value, $mpos), ',');
+        if ($vpos !== false) {
+          $venue = substr($value, $mpos+$vpos);
+          //Check for space, commma or year
+          $offset = 0;
+          while ($venue[$offset] == ' ' || $venue[$offset] == ',' || is_numeric($venue[$offset])) {
+            $offset++;
+          }
+          $venue = substr($venue, $offset);
+          if (strpos($venue, 'Proceedings') !== false) {
+            $venue = '';
+          }
+        }
+        
+        //Find last comma before month
+        $cpos = strrpos(substr($value, 0, $mpos), ',');
+        //Remove tail containing month
         if ($cpos !== false && $cpos < $mpos) {
           if ($value[$cpos-1] == ' ') {
             $value = substr($value, 0, $cpos-1);
@@ -399,11 +418,23 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
             $value = substr($value, 0, $cpos);
           }
         }
+        $monthIdx = $idx;
         break;
       }
     }
 
-    //TODO import month here too!!
+    //Import month based on text
+    //January is default anyway, so we only care for other months
+    if ($monthIdx > 0 && $entry['month'] === '0') {
+      $entry['month'] = strval($monthIdx+1);
+      $this->importMonth($wrapper, 'month', $entry);
+    }
+
+    //Import venue based on text
+    if (strlen($venue) > 2) {
+      $entry['venue_name'] = $venue;
+      $this->importVenueName($wrapper, 'venue_name', $entry);
+    }
 
     $entry[$key] = $value;
     $this->importGeneric($wrapper, $key, $entry);
@@ -425,6 +456,33 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
     }
 
     $entry[$key] = $entry['series'];
+    $this->importGeneric($wrapper, $key, $entry);
+  }
+
+  /**
+   * Import venue name.
+   *
+   * @param EntityMetadataWrapper $wrapper
+   *   The wrapped Biblio object.
+   * @param $key
+   *   The key to import.
+   * @param $entry
+   *   The data to import from.
+   */
+  public function importVenueName(EntityMetadataWrapper $wrapper, $key, $entry) {
+    if (empty($entry['venue_name'])) {
+      return;
+    }
+
+    $types = array(
+      'conference_paper',
+      'demo',
+      'workshop_paper',
+    );
+    if (!in_array($entry['type'], $types)) {
+      return;
+    }
+
     $this->importGeneric($wrapper, $key, $entry);
   }
 
@@ -550,15 +608,16 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
 
     $output = ''; //array();
     $links = '';
+    $extras = '';
 
     $map = $this->getMapping();
-    $extras = $wrapper->{'title'}->value();
+    //$extras = $wrapper->{'title'}->value();
 //    $extras .= $this->{$map['field']['secondary_title']['method']}($wrapper, $map['field']['secondary_title']['property']);
 
     $show_fields = array('title',
                         'author',
                         'secondary_title',
-                        'venue_name', //TODO
+                        'venue_name',
                         'month',
                         'year',
                         'supervisor',
@@ -580,25 +639,6 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
       if(!$value = $this->{$method}($wrapper, $property)) {
         continue;
       }
-      
-      //debug, TODO move to import
-      /*if ($property == 'biblio_secondary_title') {
-        $months = array('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December');
-         foreach($months as $month) {
-           if (($mpos = strpos($value, $month)) !== false) {
-            //Find last comma
-            $cpos = strpos($value, ',', $mpos - 3);
-            if ($cpos !== false && $cpos < $mpos) {
-              if ($value[$cpos-1] == ' ') {
-                $value = substr($value, 0, $cpos-1);
-              } else {
-                $value = substr($value, 0, $cpos);
-              }
-            }
-            break;
-           }
-         }
-      }*/
 
       if ($method == 'formatUrl') {
         $links .= $value;
@@ -606,19 +646,21 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
         $extras = $value;
       } else {
         $output .= $value;
+        if ($field == 'venue_name' || $field == 'secondary_title') {
+          $output .= ', ';
+        }
+        if ($field == 'month') {
+          $output .= ' ';
+        }
       }
     }
 
     //TODO maybe sort output here
+    $links .= l('<span class="glyphicon glyphicon-link"></span>', 'pubzone/publication/'.$biblio->bid, array('html' => TRUE, 'attributes' => array('class' => array('pub-cite'))));
 
-    $meta_links = l('cite', '#', array('external' => TRUE, 'attributes' => array('class' => array('pub-cite'))));
-    $meta_links .= l('edit', 'biblio/'.$biblio->bid.'/edit');
-    $meta_links .= l('delete', 'biblio/'.$biblio->bid.'/delete');
 
-    //dpm($output);
     //TODO extras contains abstract
     $output .= '<div class="pub-links">'.$links.'</div>';
-    $output .= '<div class="pub-meta">'.$meta_links.'</div>';
     $bibtex = '<pre>'.$biblio->getText('bibtex').'</pre>';
     $output .= '<div class="pub-extras">'.$extras.$bibtex.'</div>';
 
@@ -629,7 +671,8 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
 
     $year = $biblio->biblio_year['und'][0]['value'];
 
-    return '<div class="pub" data-type="' . $type_info['name'] . '" ' . $cat . '" data-year="' . $year . '">'.$output.'</div>';
+    // NOTE: this does not close the div, it must be closed where the rendered text is actually used!
+    return '<div class="pub" data-type="' . $type_info['name'] . '" ' . $cat . '" data-year="' . $year . '">'.$output;
   }
 
   /**
@@ -736,7 +779,7 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
     if ($idx > 0 && $idx < 13) {
       $month = $months[$idx-1];
     }
-    return ', '.$month.' ';
+    return $month;
   }
 
   private function formatSupervisor(EntityMetadataWrapper $wrapper, $key) {
@@ -1028,7 +1071,7 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
           'method' => 'formatTitle',
         ),
         // Keys used for import.
-        'venue_name' => array(
+        'tertiary_title' => array(
           'property' => 'biblio_tertiary_title',
           'import_method' => 'importTertiaryTitle',
         ),
@@ -1045,6 +1088,7 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
           'import_method' => 'importSupervisor',
           'method' => 'formatSupervisor',
         ),
+        'venue_name' => array('property' => 'biblio_venue', 'import_method' => 'importVenueName'),
       ),
       'type' => array(
         'article' => 'journal_article',

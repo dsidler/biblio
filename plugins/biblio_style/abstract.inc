@@ -242,13 +242,11 @@ abstract class BiblioStyleBase implements BiblioStyleInterface {
   public function importKeywordsList(EntityMetadataWrapper $wrapper, $keywords = array(), $property_name = 'biblio_keywords', $vocabulary_name = 'biblio_keywords') {
     $terms = array();
     foreach ($keywords as $term_name) {
-    dpm($term_name);
       if (!$term = taxonomy_get_term_by_name($term_name, $vocabulary_name)) {
         if (!$vocabulary = taxonomy_vocabulary_machine_name_load($vocabulary_name)) {
           drupal_set_message('Could not find the vocabulary: '.$vocabulary_name, 'warning');
           continue;
         }
-        dpm($vocabulary);
         $values = array(
           'name' => $term_name,
           'vid' => $vocabulary->vid,
@@ -260,16 +258,10 @@ abstract class BiblioStyleBase implements BiblioStyleInterface {
       // taxonomy_get_term_by_name() returns an array, so normalize it.
       $terms[] = is_array($term) ? reset($term) : $term;
     }
-    dpm("FAIL");
-    dpm($terms);
-    dpm($property_name);
     if (!empty($terms)) {
       //$wrapper->{$property_name}->set($terms);
-      dpm($wrapper->biblio_keywords);
       //$wrapper->biblio_keywords->set($terms);
-      dpm("HEREO");
     }
-    dpm("AFTER FAIL");
   }
 
   /**

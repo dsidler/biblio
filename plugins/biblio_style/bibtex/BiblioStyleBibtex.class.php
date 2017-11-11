@@ -287,6 +287,7 @@ class BiblioStyleBibtex extends BiblioStyleBase implements BiblioStyleImportInte
 
     $output = array();
     $output[] = '@' . $type_mapping[$type_info['name']] . '{';
+    $output[] = 'abc';
 
     $map = $this->getMapping();
     foreach ($map['field'] as $key => $info) {
@@ -675,6 +676,7 @@ class BiblioStyleBibtex extends BiblioStyleBase implements BiblioStyleImportInte
         ),
         // @todo: Is this the Biblio URL?
         'url' => array('property' => 'biblio_url'),
+        'venue' => array('property' => 'biblio_venue'),
         'volume' => array('property' => 'biblio_volume'),
         'year' => array('property' => 'biblio_year'),
       ),
