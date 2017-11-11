@@ -15,7 +15,7 @@ function biblio_biblio_fields_info() {
     ),
     'instance' => array(
       'label' => 'Publication abstract',
-      //'description' => 'Holds generic info the biblio.',
+      'required' => TRUE,
       'widget' => array(
         'active' => 1,
         'module' => 'text',
@@ -122,7 +122,7 @@ function biblio_biblio_fields_info() {
       'widget' => array(
         'active' => 1,
         'type' => 'file_generic',
-        'weight' => '10',
+        'weight' => '16',
       ),
     ),
   );
@@ -153,7 +153,7 @@ function biblio_biblio_fields_info() {
       'widget' => array(
         'active' => 1,
         'type' => 'file_generic',
-        'weight' => '11',
+        'weight' => '17',
       ),
     ),
   );
@@ -184,7 +184,7 @@ function biblio_biblio_fields_info() {
       'widget' => array(
         'active' => 1,
         'type' => 'file_generic',
-        'weight' => '12',
+        'weight' => '18',
       ),
     ),
   );
@@ -214,7 +214,7 @@ function biblio_biblio_fields_info() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '13',
+        'weight' => '19',
       ),
     ),
    );
@@ -249,7 +249,7 @@ function biblio_biblio_fields_info() {
         'type' => 'options_buttons',
         'module' => 'options',
         'active' => 1,
-        'weight' => '16',
+        'weight' => '22',
       ),
     ),
   );
@@ -362,7 +362,7 @@ function biblio_biblio_fields_info() {
     ),
     'instance' => array(
       'default_value' => NULL,
-      'description' => '',
+      'description' => 'Year in 4 digits, for instance: 2017',
       'display' => array(
         'default' => array(
           'label' => 'above',
@@ -392,7 +392,7 @@ function biblio_biblio_fields_info() {
         'module' => 'number',
         'settings' => array(),
         'type' => 'number',
-        'weight' => '7',
+        'weight' => '11',
       ),
     ),
   );
@@ -412,7 +412,7 @@ function biblio_biblio_fields_info() {
     ),
     'instance' => array(
       'default_value' => NULL,
-      'description' => 'Type in a number between 1-12',
+      'description' => 'Month as a number between 1-12',
       'display' => array(
         'default' => array(
           'label' => 'above',
@@ -442,7 +442,7 @@ function biblio_biblio_fields_info() {
         'module' => 'number',
         'settings' => array(),
         'type' => 'number',
-        'weight' => '6',
+        'weight' => '10',
       ),
     ),
   );
@@ -548,7 +548,7 @@ function biblio_biblio_fields_info() {
       'type' => 'text',
     ),
     'instance' => array(
-      'label' => 'Issue',
+      'label' => 'Issue Number',
       'required' => FALSE,
       'settings' => array(
         'text_processing' => '0',
@@ -561,16 +561,12 @@ function biblio_biblio_fields_info() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '-3',
+        'weight' => '8',
       ),
     ),
-    'bundles_info' => array(),
-      /*'government_report' => array(),
+    'bundles_info' => array(
       'journal_article' => array(),
-      'magazine_article' => array(
-        'label' => 'Issue Number',
-      ),
-    ),*/
+    ),
   );
 
   // Number of volumes.
@@ -657,7 +653,7 @@ function biblio_biblio_fields_info() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '-3',
+        'weight' => '8',
       ),
     ),
     'bundles_info' => array(),
@@ -735,79 +731,16 @@ function biblio_biblio_fields_info() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '-3',
+        'weight' => '9',
       ),
     ),
     'bundles_info' => array(
-      /*'artwork' => array(
-        'label' => 'Description',
-      ),*/
       'book' => array(
         'label' => 'Number of Pages',
-      ),
-      /*'bill' => array(
-        'label' => 'Code Pages',
-      ),
-      'case' => array(
-        'label' => 'First Page',
-      ),
-      'chart' => array(
-        'label' => 'Description',
-      ),
-      'classical' => array(
-        'label' => 'Number of Pages',
-      ),
-      'conference_proceedings' => array(
-        'label' => 'Pagination',
-      ),
-      'government_report' => array(
-        'label' => 'Pagination',
-      ),
-      'hearing' => array(
-        'label' => 'Pagination',
       ),
       'journal_article' => array(
         'label' => 'Pagination',
       ),
-      'legal_ruling' => array(
-        'label' => 'Pagination',
-      ),
-      'magazine_article' => array(
-        'label' => 'Pagination',
-      ),
-      'manuscript' => array(
-        'label' => 'Pagination',
-      ),
-      'map' => array(
-        'label' => 'Description',
-      ),
-      'newspaper_article' => array(
-        'label' => 'Pagination',
-      ),
-      'patent' => array(
-        'label' => 'Pagination',
-      ),
-      'personal' => array(
-        'label' => 'Pagination',
-      ),
-      'report' => array(
-        'label' => 'Pagination',
-      ),
-      'software' => array(
-        'label' => 'Description',
-      ),
-      'statute' => array(
-        'label' => 'Pagination',
-      ),
-      'thesis' => array(
-        'label' => 'Number of Pages',
-      ),
-      'unpublished' => array(
-        'label' => 'Pagination',
-      ),
-      'web_article' => array(
-        'label' => 'Description',
-      ),*/
     ),
   );
 
@@ -1173,7 +1106,7 @@ function biblio_biblio_fields_info() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '16',
+        'weight' => '24',
       ),
     ),
   );
@@ -1321,7 +1254,7 @@ function biblio_biblio_fields_info() {
         'module' => 'field_collection',
         'settings' => array(),
         'type' => 'field_collection_embed',
-        'weight' => '8',
+        'weight' => '12',
       ),
     ),
   );
@@ -1632,7 +1565,7 @@ function biblio_biblio_fields_info() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '14',
+        'weight' => '20',
       ),
     ),
     // @todo: Applies to all?
@@ -1701,42 +1634,12 @@ function biblio_biblio_fields_info() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '-3',
+        'weight' => '7',
       ),
     ),
     'bundles_info' => array(
       'book' => array(),
-      /*'bill' => array(
-        'label' => 'Code Volume',
-      ),
-      'case' => array(
-        'label' => 'Reporter Volume',
-      ),
-      'chart' => array(
-        'label' => 'Image Size',
-      ),
-      'classical' => array(),
-      'conference_proceedings' => array(),
-      'government_report' => array(),*/
       'journal_article' => array(),
-      /*'legal_ruling' => array(
-        'label' => 'Rule Number',
-      ),
-      'manuscript' => array(
-        'label' => 'Volume/Storage Container',
-      ),
-      'patent' => array(
-        'label' => 'Patent Version Number',
-      ),
-      'statute' => array(
-        'label' => 'Code Number',
-      ),
-      'thesis' => array(
-        'label' => 'degree',
-      ),
-      'web_article' => array(
-        'label' => 'Access Year',
-      ),*/
     ),
   );
 
@@ -2029,81 +1932,26 @@ function biblio_biblio_fields_info() {
       ),
     ),
     'bundles_info' => array(
-      /*'audiovisual' => array(
-        'label' => 'Series Title',
-      ),*/
       'book' => array(
         'label' => 'Series Title',
       ),
       'book_chapter' => array(
         'label' => 'Book Title',
       ),
-      /*'bill' => array(
-        'label' => 'Code',
-      ),
-      'case' => array(
-        'label' => 'Reporter',
-      ),
-      'chart' => array(
-        'label' => 'Image Source Program',
-      ),
-      'classical' => array(
-        'label' => 'Series Title',
-      ),*/
       'conference_paper' => array(
         'label' => 'Conference Name',
       ),
-      /*'conference_proceedings' => array(
-        'label' => 'Conference Name',
-      ),
-      'database' => array(
-        'required' => TRUE,
-      ),
-      'film' => array(
-        'label' => 'Series Title',
-      ),
-      'magazine_article' => array(
-        'label' => 'Magazine',
-      ),
-      'hearing' => array(
-        'label' => 'Committee',
-      ),*/
       'journal_article' => array(
         'label' => 'Journal',
       ),
-      /*'manuscript' => array(
-        'label' => 'Collection Title',
+      'phd_thesis' => array(
+        'label' => 'Dissertation Number',
+        'description' => 'Format: ETH Zurich, Diss Nr. 1234',
       ),
-      'map' => array(
-        'label' => 'Series Title',
+      'master_thesis' => array(
+        'label' => 'Thesis number',
+        'description' => 'Format: Systems Group Master\'s Thesis, no. 123; Department of Computer Science, ETH Zurich',
       ),
-      'newspaper_article' => array(
-        'label' => 'Newspaper',
-      ),
-      'patent' => array(
-        'label' => 'Published Source',
-      ),
-      'report' => array(
-        'label' => 'Series Title',
-      ),
-      'software' => array(
-        'label' => 'Book Title',
-      ),
-      'statute' => array(
-        'label' => 'Code',
-      ),
-      'thesis' => array(
-        'label' => 'Academic Department',
-      ),*/
-      'phd_thesis' => array(),
-        /*'label' => 'Academic Department',
-      ),*/
-      'master_thesis' => array(),
-        /*'label' => 'Academic Department',
-      ),*/
-
-      /*'unpublished' => array(),
-      'web_article' => array(),*/
     ),
   );
 
@@ -2157,6 +2005,50 @@ function biblio_biblio_fields_info() {
       'patent' => array(
         'label' => 'International Title',
       ),*/
+    ),
+  );
+
+
+  // Biblio venue
+  $items['biblio_venue'] = array(
+    'description' => 'Venue',
+    'field' => array(
+      'cardinality' => '1',
+      'field_name' => 'biblio_venue',
+      'module' => 'text',
+      'settings' => array(
+        'max_length' => '255',
+      ),
+      'type' => 'text',
+    ),
+    'instance' => array(
+      'label' => 'Venue',
+      'description' => 'For US/CA locations: Chicago, IL, USA; All other locations: Lausanne, Switzerland',
+      'required' => TRUE,
+      'settings' => array(
+        'text_processing' => '0',
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'size' => '60',
+        ),
+        'type' => 'text_textfield',
+        'weight' => '6',
+      ),
+    ),
+    'bundles_info' => array(
+      'conference_paper' => array(
+        'label' => 'Venue',
+      ),
+      'demo' => array(
+        'label' => 'Venue',
+      ),
+      'workshop_paper' => array(
+        'label' => 'Venue',
+      ),
     ),
   );
 
@@ -2309,7 +2201,7 @@ function biblio_biblio_fields_info() {
       'widget' => array(
         'module' => 'options',
         'type' => 'options_select',
-        'weight' => '20',
+        'weight' => '26',
         'settings' => array(
           'display_label' => TRUE,
         ),
@@ -2605,6 +2497,7 @@ function biblio_biblio_fields_info() {
     ),
     'instance' => array(
       'label' => 'Supervisor of Thesis',
+      'description' => 'Example: Prof. Timothy Roscoe',
 		  'required' => TRUE,
       'settings' => array(
         'text_processing' => '0',
@@ -2617,7 +2510,7 @@ function biblio_biblio_fields_info() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '9',
+        'weight' => '14',
       ),
     ),
     'bundles_info' => array(

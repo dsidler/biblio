@@ -14,8 +14,6 @@ function pubzone_ui_menu() {
     'title' => 'Publications',
     'page callback' => 'pubzone_ui_mainpage',
     'access callback' => TRUE,
-    //'access' => TRUE,
-    //'access arguments' => array('view biblio'),
     'type' => MENU_CALLBACK,
   );
 
@@ -24,8 +22,14 @@ function pubzone_ui_menu() {
     'page callback' => 'pubzone_ui_mainpage',
     'page arguments' => array(2,3),
     'access callback' => TRUE,
-    //'access' => TRUE,
-    //'access arguments' => array('view biblio'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['pubzone/publication/%'] = array(
+    'title' => 'Publication',
+    'page callback' => 'pubzone_ui_singlepage',
+    'page arguments' => array(2),
+    'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
 
@@ -104,9 +108,11 @@ function pubzone_ui_mainpage($aid=null, $author=null) {
   $content .='</section>';*/
   
   //Get biblios.
-  $content .= '<section id="pubzone-biblios"><div><a href="#" onClick="exportBibtex()">Export bibtex</a></div>';
+  $content .= '<section id="pubzone-biblios">';
   if ($aid) {
-    $content .= '<div><a href="/pubzone">Back to main page</a></div>';
+    $content .= '<div class="pub-export">';
+    $content .= '<div><a href="#" onClick="exportBibtex()">Export bibtex</a></div>';
+    $content .= '<div><a href="/pubzone">All Publications</a></div></div>';
     $biblios = pubzone_ui_get_author_biblios($aid);
   } else {
     $biblios = pubzone_ui_get_biblios();
@@ -114,6 +120,7 @@ function pubzone_ui_mainpage($aid=null, $author=null) {
 
   $previous_year = 0;
 
+  global $user;
   foreach ($biblios as $bid) {
     $biblio = biblio_load($bid);
     $current_year = $biblio->biblio_year['und'][0]['value'];
@@ -123,6 +130,17 @@ function pubzone_ui_mainpage($aid=null, $author=null) {
     }
     
     $content .= $biblio->getText($biblio_style);
+    if (is_array($user->roles) && in_array('authenticated user', array_values($user->roles))) {
+      $meta_links = l('edit', 'biblio/'.$bid.'/edit');
+      if (is_array($user->roles) && in_array('editor', array_values($user->roles))) {
+        $meta_links .= l('delete', 'biblio/'.$bid.'/delete');
+      }
+      $content .= '<div class="pub-meta">'.$meta_links.'</div>';
+    }
+
+    // NOTE: getText does NOT close the <div> it creates, so it must be closed here! This is to accommodate the pub-meta div above, and should be refactored
+    $content .= '</div>';
+
     $previous_year = $current_year;
   }
   $content .= '</section>';
@@ -171,53 +189,29 @@ function pubzone_ui_get_author_biblios($aid) {
   return array();
 }
 
-/*function pubzone_ui_authorpage($aid, $author) {
+
+function pubzone_ui_singlepage($bid) {
   $biblio_style = 'pubzone';
-  $content = '';
-  if ($aid) {
-    $content .= '<p>Author ID: '.$aid.'</p>';
+  
+  if (!$bid) {
+    return l('Invalid publication id.');
   }
-  if ($author) {
-    $content .= '<p>Name: '.$author.'</p>';
-  }
-  $content .= 'done.';
+  $content = '<div class="pub-export"><div><a href="/pubzone">All Publications</a></div></div>';
 
-  $inner = new EntityFieldQuery;
-  $inner->entityCondition('entity_type', 'field_collection_item');
-  $inner->fieldCondition('biblio_contributor', 'target_id', $aid);
-  //$query->propertyCondition('field_name', 'biblio_contributor');
-  //$query->entityCondition('entity_id', $aid);
-  //$query->entityCondition('bundle', 'contributor_field_collection');
-  //$query->fieldCondition('contributor_field_collection', 'item_id', 71827);
-  //$query->fieldCondition('id', 'value', 1178);
-  //$query->fieldOrderBy('biblio_year', 'value', 'DESC');
-  //$query->fieldOrderBy('biblio_month', 'value', 'DESC');
-  //$query->fieldCondition('biblio_contributor', 'value', 1255);
-  //$query->range(0,10);
-
-
-  $inner_res = $inner->execute();
-  //dpm($results);
-  if (isset($inner_res['field_collection_item'])) {
-    $keys = array_keys($inner_res['field_collection_item']);
-    $query = new EntityFieldQuery();
-    $query->entityCondition('entity_type', 'biblio');
-    $query->fieldCondition('contributor_field_collection', 'value', $keys);
-    $query->fieldOrderBy('biblio_year', 'value', 'DESC');
-    $query->fieldOrderBy('biblio_month', 'value', 'DESC');
-
-    $results = $query->execute();
-    if (isset($results['biblio'])) {
-      foreach ($results['biblio'] as $bid => $item) {
-        $biblio = biblio_load($bid);
-        $content .= $biblio->getText($biblio_style);
-      }
+  global $user;
+  $biblio = biblio_load($bid);
+  $content .= $biblio->getText($biblio_style);
+  if (is_array($user->roles) && in_array('authenticated user', array_values($user->roles))) {
+    $meta_links = l('edit', 'biblio/'.$bid.'/edit');
+    if (is_array($user->roles) && in_array('editor', array_values($user->roles))) {
+      $meta_links .= l('delete', 'biblio/'.$bid.'/delete');
     }
+    $content .= '<div class="pub-meta">'.$meta_links.'</div>';
   }
 
-  //dpm(entity_get_info());
-
+  // NOTE: getText does NOT close the <div> it creates, so it must be closed here! This is to accommodate the pub-meta div above, and should be refactored
+  $content .= '</div>';
 
   return $content;
-}*/
+}
 
