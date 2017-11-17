@@ -111,9 +111,9 @@ function biblio_biblio_fields_info() {
       'label' => 'The publication PDF',
       'description' => 'PDF for the biblio',
       'settings' => array(
-        'file_directory' => '',
+        'file_directory' => 'publications',
         'file_extensions' => 'pdf',
-        'max_filesize' => '',
+        'max_filesize' => '2MB',
         'max_resolution' => '',
         'min_resolution' => '',
         'title_field' => 0,
@@ -142,9 +142,9 @@ function biblio_biblio_fields_info() {
       'label' => 'Presentation Slides PDF',
       'description' => 'PDF for the presentation slides',
       'settings' => array(
-        'file_directory' => '',
+        'file_directory' => 'slides',
         'file_extensions' => 'pdf',
-        'max_filesize' => '',
+        'max_filesize' => '4MB',
         'max_resolution' => '',
         'min_resolution' => '',
         'title_field' => 0,
@@ -173,9 +173,9 @@ function biblio_biblio_fields_info() {
       'label' => 'Poster PDF',
       'description' => 'PDF of the poster',
       'settings' => array(
-        'file_directory' => '',
+        'file_directory' => 'posters',
         'file_extensions' => 'pdf',
-        'max_filesize' => '',
+        'max_filesize' => '2MB',
         'max_resolution' => '',
         'min_resolution' => '',
         'title_field' => 0,
@@ -202,7 +202,7 @@ function biblio_biblio_fields_info() {
     ),
     'instance' => array(
       'label' => 'Video',
-      'description' => 'You can put your video url here',
+      'description' => 'URL to a video, e.g. YouTube',
       'settings' => array(
         'text_processing' => '0',
         'user_register_form' => FALSE,
@@ -1553,7 +1553,7 @@ function biblio_biblio_fields_info() {
     ),
     'instance' => array(
       'label' => 'URL',
-      'description' => 'You can put your DOI url here',
+      'description' => 'DOI URL or any other URL',
       'settings' => array(
         'text_processing' => '0',
         'user_register_form' => FALSE,
@@ -1940,6 +1940,7 @@ function biblio_biblio_fields_info() {
       ),
       'conference_paper' => array(
         'label' => 'Conference Name',
+        'description' => 'Example: Proceedings of the Twelfth European Conference on Computer Systems, EuroSys 2017',
       ),
       'journal_article' => array(
         'label' => 'Journal',

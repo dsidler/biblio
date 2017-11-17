@@ -78,7 +78,7 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
       //Get wrapper
       $wrapper = entity_metadata_wrapper('biblio', $biblio);
       foreach (array_keys($map) as $key) {
-        if (in_array($key, array('author', 'editor'))) { //TODO add supervisor
+        if (in_array($key, array('author', 'editor'))) {
           continue;
         }
         
@@ -94,8 +94,6 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
         $this->{$method}($wrapper, $key, $entry);
 
       } //foreach $map
-
-      //TODO month, should be done automatically
 
       //Add contributors
       $contributors = $this->getPublicationAuthors($row->publication_id);
@@ -563,7 +561,7 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
     //replace whitespace
     $filename = str_replace(' ', '_', $filename);
     $base = variable_get('file_public_path', conf_path().'/files');
-    $path = $base.'/pubzone/'.$filename;
+    $path = $base.'/publications/'.$filename;
     if (file_exists($path)) {
       $file = new stdClass();
       $file->uid = 1;
@@ -654,7 +652,8 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
     }
 
     //TODO maybe sort output here
-    $links .= l('<span class="glyphicon glyphicon-link"></span>', 'pubzone/publication/'.$biblio->bid, array('html' => TRUE, 'attributes' => array('class' => array('pub-cite'))));
+    //$links .= l('<span class="glyphicon glyphicon-tag"></span>', '#', array('external' => TRUE, 'html' => TRUE, 'attributes' => array('class' => array('pub-cite'))));
+    $links .= l('<span class="glyphicon glyphicon-share-alt"></span>', '/publication/'.$biblio->bid, array('html' => TRUE));
 
 
     //TODO extras contains abstract
@@ -743,7 +742,7 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
    * Rendering conference title property
    */
   private function formatTitle(EntityMetadataWrapper $wrapper, $key) {
-    return '<div class="pub-title"><a href="#">'.$wrapper->{$key}->value().'</a></div>';
+    return '<div class="pub-title"><a href="#">'.$wrapper->{$key}->value().' <span class="glyphicon glyphicon-chevron-down" style="display:inline;"/></span><span class="glyphicon glyphicon-chevron-up" style="display:none;"/></span></a></div>';
   }
 
   private function formatUrl(EntityMetadataWrapper $wrapper, $key) {
@@ -757,7 +756,7 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
     if ($wrapper->{$key}->value() === NULL) {
       return NULL;
     }
-    if ($key == 'biblio_url')
+    if ($key == 'biblio_url' || $key == 'biblio_video')
     {
       return l('<span class="glyphicon glyphicon-'.$icons[$key].'"></span>', $wrapper->{$key}->value(), array('html'=>TRUE));
     } else {
@@ -966,7 +965,7 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
 
       // Add the full name to the list of contributors.
       $thisname = implode(' ', $full_name);
-      $names[] = l($thisname, 'pubzone/author/'.$contributor->{'cid'}.'/'.$thisname);
+      $names[] = l($thisname, 'author/'.$contributor->{'cid'}.'/'.$thisname);
     }
 
     $output = $names[0];

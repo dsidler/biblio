@@ -10,25 +10,25 @@
 function pubzone_ui_menu() {
   $items = array();
 
-  $items['pubzone'] = array(
+  $items['publications'] = array(
     'title' => 'Publications',
     'page callback' => 'pubzone_ui_mainpage',
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
 
-  $items['pubzone/author/%/%'] = array(
+  $items['author/%/%'] = array(
     'title' => 'Publications',
     'page callback' => 'pubzone_ui_mainpage',
-    'page arguments' => array(2,3),
+    'page arguments' => array(1,2),
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
 
-  $items['pubzone/publication/%'] = array(
+  $items['publication/%'] = array(
     'title' => 'Publication',
     'page callback' => 'pubzone_ui_singlepage',
-    'page arguments' => array(2),
+    'page arguments' => array(1),
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
@@ -112,7 +112,7 @@ function pubzone_ui_mainpage($aid=null, $author=null) {
   if ($aid) {
     $content .= '<div class="pub-export">';
     $content .= '<div><a href="#" onClick="exportBibtex()">Export bibtex</a></div>';
-    $content .= '<div><a href="/pubzone">All Publications</a></div></div>';
+    $content .= '<div><a href="/publications">All Publications</a></div></div>';
     $biblios = pubzone_ui_get_author_biblios($aid);
   } else {
     $biblios = pubzone_ui_get_biblios();
@@ -196,7 +196,7 @@ function pubzone_ui_singlepage($bid) {
   if (!$bid) {
     return l('Invalid publication id.');
   }
-  $content = '<div class="pub-export"><div><a href="/pubzone">All Publications</a></div></div>';
+  $content = '<div class="pub-export"><div><a href="/publications">All Publications</a></div></div>';
 
   global $user;
   $biblio = biblio_load($bid);
