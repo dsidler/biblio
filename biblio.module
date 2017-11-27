@@ -1044,16 +1044,12 @@ function template_preprocess_biblio(&$variables) {
  */
 function biblio_biblio_categories_info() {
   $categories = array(
-    'Cloud Computing',
-    'Crowd Sourcing',
-    'Database Systems',
-    'Distributed Systems',
-    'High Performance Computing',
-    'Networking',
-    'Operating Systems',
-    'Software Construction',
-    'Stream Processing',
-    'Workflow Systems',
+    'Alonso',
+    'Hoefler',
+    'Mutlu',
+    'Roscoe',
+    'Singla',
+    'Zhang',
   );
 
   return $categories;

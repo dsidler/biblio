@@ -39,7 +39,6 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
     //This limits the import to 100
     //$query->range(1,99);
 
-    //TODO keywords
     
     $result = $query->execute();
     db_set_active('default');
@@ -52,6 +51,15 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
       if (!$row->type || !$row->title) {
         continue;
       }
+
+      if ($row->type == 'workshop_paper') {
+        $row->type = 'conference_paper';
+        if (!$row->booktitle) {
+          $row->booktitle = $row->venue_name;
+          $row->venue_name = NULL;
+        }
+      }
+
       if ($row->type == 'phd_thesis' || $row->type == 'master_thesis') {
         if ($row->venue_name) {
           $row->booktitle = $row->venue_name;
@@ -98,11 +106,12 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
       //Add contributors
       $contributors = $this->getPublicationAuthors($row->publication_id);
       $this->importContributors($wrapper, $contributors);
+      $this->importGroups($wrapper, $contributors);
 
 
       //Add sections/categories
-      $sections = $this->getPublicationSections($row->publication_id);
-      $this->importSections($wrapper, $sections);
+      //$sections = $this->getPublicationSections($row->publication_id);
+      //$this->importSections($wrapper, $sections);
 
       //Add attachment
       $attachments = $this->getAttachments($row->publication_id);
@@ -526,7 +535,7 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
 
   //They are called section in Pubzone, in Biblio we call them categories
   //TODO potentially could be replaced by importKeywordsList
-  public function importSections(EntityMetadataWrapper $wrapper, $sections) {
+  /*public function importSections(EntityMetadataWrapper $wrapper, $sections) {
     if(empty($sections)) {
       return;
     }
@@ -539,6 +548,31 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
       $terms[] = $term;
     }
     $wrapper->biblio_category->set($terms);
+  }*/
+
+  public function importGroups(EntityMetadataWrapper $wrapper, $contributors) {
+    if(empty($contributors)) {
+      return;
+    }
+    $biblio = $wrapper->value();
+
+    //Extract last names
+    $names = array();
+    foreach ($contributors as $contributor) {
+      $names[] = $contributor->lastname;
+    }
+
+    $terms = array();
+    foreach ($names as $name) {
+      $term = taxonomy_get_term_by_name($name, 'biblio_categories');
+      if (!empty($term)) {
+        $term = reset($term);
+        $terms[] = $term;
+      }
+    }
+    if (!empty($terms)) {
+      $wrapper->biblio_category->set($terms);
+    }
   }
 
   public function importSupervisor(EntityMetadataWrapper $wrapper, $key, $entry) {
@@ -593,16 +627,11 @@ class BiblioStylePubzone extends BiblioStyleBase implements BiblioStyleImportInt
     $biblio = clone $this->biblio;
     $wrapper = entity_metadata_wrapper('biblio', $biblio);
     $type = $this->biblio->type;
-    dpm($biblio);
 
     //TODO what is this???
     if ($type == 'thesis' && !empty($wrapper->biblio_type_of_work) && strpos($wrapper->biblio_type_of_work->value(), 'masters') === TRUE) {
       $type = 'mastersthesis';
     }
-    //debug
-    /*if ($type == 'phd_thesis') {
-            dpm($biblio);
-    }*/
     $type_info = biblio_get_types_info($type);
 
     $output = ''; //array();

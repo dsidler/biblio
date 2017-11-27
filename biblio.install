@@ -115,7 +115,7 @@ function _biblio_install_add_biblio_roles() {
 function _biblio_install_add_biblio_categories() {
   if (!$vocabulary = taxonomy_vocabulary_machine_name_load('biblio_categories')) {
     $vocabulary = new stdClass();
-    $vocabulary->name = 'Biblio categories';
+    $vocabulary->name = 'Research Groups';
     $vocabulary->machine_name = 'biblio_categories';
     taxonomy_vocabulary_save($vocabulary);
   }

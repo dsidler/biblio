@@ -1,4 +1,4 @@
-ame = Biblio
+name = Biblio
 description = Maintains bibliographic lists.
 core = 7.x
 
