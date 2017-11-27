@@ -31,17 +31,10 @@ function biblio_uninstall() {
     foreach ($bundles as $instances) {
 	   foreach ($instances as $instance) {
 		  if (in_array($instance['field_name'], $biblio_fields)) {
-      dpm($instance['field_name']);
 			 //TODO gives sometimes an error
 		    field_delete_instance($instance);
 			 field_purge_batch(1);
 		  }
-		  /*else {
-		    $field = field_info_field($instance['field_name']);
-			 dpm($field);
-          dpm($instance);
-		    dpm(field_info_field($instance['field_name']));
-		  }*/
 		}
 	 }
   }
